@@ -2,25 +2,22 @@ import React, { useState } from 'react';
 import { 
   Plus, 
   Search, 
-  Filter, 
   ChevronRight, 
   ChevronLeft, 
   X, 
-  Building2, 
   SlidersHorizontal, 
   Layers, 
   Columns3, 
   MapPin, 
   Briefcase, 
-  Sparkles,
-  Clock,
-  AlertTriangle,
+  Clock, 
+  AlertTriangle, 
   BellRing
 } from 'lucide-react';
 import { MedicalLead, StageId } from '../types';
 import { STAGES } from '../data/stages';
 import { SPECIALTIES_LIST } from '../data/specialties';
-import { ECUADOR_CITIES, ECUADOR_SECTORS } from '../data/ecuadorData';
+import { ECUADOR_SECTORS } from '../data/ecuadorData';
 import { formatCurrency } from '../utils/storage';
 import { KanbanCard } from './KanbanCard';
 import { getLeadOverdueInfo } from '../utils/notificationService';
@@ -55,6 +52,8 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   const [selectedSector, setSelectedSector] = useState<string>('all');
   const [selectedService, setSelectedService] = useState<string>('all');
   const [internalOnlyOverdue, setInternalOnlyOverdue] = useState(false);
+  
+  // Drag & drop state for moving cards across stages
   const [draggedLeadId, setDraggedLeadId] = useState<string | null>(null);
   const [dragOverStage, setDragOverStage] = useState<StageId | null>(null);
 
@@ -72,7 +71,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   // UI State: Filter drawer open/close
   const [isFilterTrayOpen, setIsFilterTrayOpen] = useState(false);
 
-  // Mobile stage view (default to 'prospecto' or first stage with leads)
+  // Mobile stage view (default to 'prospecto')
   const [activeMobileStage, setActiveMobileStage] = useState<StageId>('prospecto');
   // Mobile mode toggle: 'stage' (step-by-step swipe view) vs 'columns' (horizontal scroll)
   const [mobileViewMode, setMobileViewMode] = useState<'stage' | 'columns'>('stage');
@@ -115,6 +114,11 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
     return matchesSearch && matchesSpecialty && matchesPayment && matchesCity && matchesSector && matchesService;
   });
 
+  // Get leads for a stage
+  const getStageLeads = (stageId: StageId) => {
+    return filteredLeads.filter((l) => l.stage === stageId);
+  };
+
   // Drag and drop handlers
   const handleDragStart = (leadId: string) => {
     setDraggedLeadId(leadId);
@@ -131,13 +135,21 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
     setDragOverStage(null);
   };
 
-  const handleDrop = (e: React.DragEvent, targetStage: StageId) => {
+  // Drop on column container: changes the lead's stage
+  const handleDropOnColumn = (e: React.DragEvent, targetStage: StageId) => {
     e.preventDefault();
     setDragOverStage(null);
-    if (draggedLeadId) {
+
+    if (!draggedLeadId) return;
+
+    const draggedLead = leads.find((l) => l.id === draggedLeadId);
+    if (!draggedLead) return;
+
+    if (draggedLead.stage !== targetStage) {
       onStageChange(draggedLeadId, targetStage);
-      setDraggedLeadId(null);
     }
+
+    setDraggedLeadId(null);
   };
 
   // Count active filters (excluding search)
@@ -163,7 +175,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   const nextStage = currentStageIndex < STAGES.length - 1 ? STAGES[currentStageIndex + 1] : null;
 
   const currentStageMeta = STAGES[currentStageIndex] || STAGES[0];
-  const activeStageLeads = filteredLeads.filter((l) => l.stage === activeMobileStage);
+  const activeStageLeads = getStageLeads(activeMobileStage);
   const activeStageTotalValue = activeStageLeads.reduce(
     (acc, l) => acc + (l.paidAmount > 0 ? l.paidAmount : l.estimatedValue),
     0
@@ -283,7 +295,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
 
         </div>
 
-        {/* Quick Sector Locación Segment Pills (Requested: Centro, Jocay, Pradera, Los Esteros...) */}
+        {/* Quick Sector Locación Segment Pills (Centro, Jocay, Pradera, Los Esteros...) */}
         <div className="pt-2 border-t border-slate-100 flex flex-wrap items-center gap-1.5 text-xs">
           <span className="text-[11px] font-bold text-slate-500 flex items-center gap-1 mr-1">
             <MapPin className="w-3.5 h-3.5 text-teal-600" />
@@ -503,7 +515,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
         </div>
       )}
 
-      {/* MOBILE STAGE-BY-STAGE SWIPE VIEW (Default for mobile screen efficiency) */}
+      {/* MOBILE STAGE-BY-STAGE SWIPE VIEW */}
       <div className={`md:hidden ${mobileViewMode === 'stage' ? 'block' : 'hidden'}`}>
         
         {/* Mobile Stage Selector Pill Row */}
@@ -610,7 +622,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
       >
         <div className="flex gap-4 min-w-[1240px] items-start">
           {STAGES.map((stage) => {
-            const stageLeads = filteredLeads.filter((l) => l.stage === stage.id);
+            const stageLeads = getStageLeads(stage.id);
             const stageTotalValue = stageLeads.reduce(
               (acc, l) => acc + (l.paidAmount > 0 ? l.paidAmount : l.estimatedValue),
               0
@@ -623,7 +635,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                 id={`kanban-col-${stage.id}`}
                 onDragOver={(e) => handleDragOver(e, stage.id)}
                 onDragLeave={handleDragLeave}
-                onDrop={(e) => handleDrop(e, stage.id)}
+                onDrop={(e) => handleDropOnColumn(e, stage.id)}
                 className={`w-72 sm:w-80 shrink-0 flex flex-col rounded-2xl transition-all duration-150 ${
                   isDragOver
                     ? 'bg-teal-50/90 ring-2 ring-teal-500 border-teal-400'
@@ -664,21 +676,23 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
 
                 {/* Cards Container */}
                 <div className="p-2.5 space-y-2.5 min-h-[460px] max-h-[calc(100vh-250px)] overflow-y-auto">
-                  {stageLeads.map((lead) => (
-                    <div
-                      key={lead.id}
-                      draggable
-                      onDragStart={() => handleDragStart(lead.id)}
-                      className="transition-transform active:cursor-grabbing"
-                    >
-                      <KanbanCard
-                        lead={lead}
-                        onOpenEdit={onOpenEdit}
-                        onOpenWhatsApp={onOpenWhatsApp}
-                        onStageChange={onStageChange}
-                      />
-                    </div>
-                  ))}
+                  {stageLeads.map((lead) => {
+                    return (
+                      <div
+                        key={lead.id}
+                        draggable
+                        onDragStart={() => handleDragStart(lead.id)}
+                        className="transition-all active:cursor-grabbing"
+                      >
+                        <KanbanCard
+                          lead={lead}
+                          onOpenEdit={onOpenEdit}
+                          onOpenWhatsApp={onOpenWhatsApp}
+                          onStageChange={onStageChange}
+                        />
+                      </div>
+                    );
+                  })}
 
                   {stageLeads.length === 0 && (
                     <div className="h-32 flex flex-col items-center justify-center text-slate-400 text-xs border border-dashed border-slate-300 rounded-xl p-4 text-center">

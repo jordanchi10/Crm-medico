@@ -66,6 +66,8 @@ export interface ActivityLog {
   user?: string;
 }
 
+export type LeadPriority = 'alta' | 'media' | 'baja';
+
 export interface MedicalLead {
   id: string;
   doctorName: string; // ej. Dr. Carlos Mendoza
@@ -78,6 +80,8 @@ export interface MedicalLead {
   serviceId?: string; // id del servicio contratado
   serviceName?: string; // ej. Perfil Médico 1 año ($99) o Perfil Médico 2 años ($150)
   stage: StageId;
+  priority?: LeadPriority; // 'alta' | 'media' | 'baja'
+  order?: number; // orden posicional manual dentro de la columna
   estimatedValue: number; // Monto estimado o pactado en $
   paidAmount: number; // Monto efectivamente pagado
   paymentStatus: PaymentStatus;

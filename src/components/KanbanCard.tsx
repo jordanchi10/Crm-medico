@@ -186,7 +186,7 @@ export const KanbanCard: React.FC<KanbanCardProps> = ({
           <div className="text-slate-400 text-[10px] italic">Sin fecha prox.</div>
         )}
 
-        {/* Quick move to next stage button or stage selector on mobile */}
+        {/* Quick move to next stage button */}
         {nextStage && (
           <button
             id={`btn-next-stage-${lead.id}`}
@@ -203,18 +203,17 @@ export const KanbanCard: React.FC<KanbanCardProps> = ({
         )}
       </div>
 
-      {/* Platform Registration Date */}
-      <div className="flex items-center justify-between text-[10px] text-slate-400 pt-1.5 border-t border-slate-100">
+      {/* Card Footer: Platform Registration Date */}
+      <div className="flex items-center justify-between text-[11px] pt-1.5 border-t border-slate-100 bg-slate-50/70 -mx-3.5 -mb-2.5 px-3.5 py-1.5 rounded-b-xl">
         <span 
-          className="flex items-center gap-1 text-slate-500 truncate"
+          className="flex items-center gap-1 text-[10px] text-slate-400 truncate w-full justify-between"
           title={`Registrado en la plataforma el ${regInfo.formattedFull}`}
         >
-          <Calendar className="w-3 h-3 text-teal-600 shrink-0" />
-          <span>Alta: <strong className="font-semibold text-slate-700">{regInfo.formattedCompact}</strong></span>
-          {regInfo.relative && <span className="text-slate-400 text-[9px]">({regInfo.relative})</span>}
-        </span>
-        <span className="text-[10px] text-slate-400 font-medium shrink-0 ml-1">
-          {lead.city || 'Ecuador'}
+          <span className="flex items-center gap-1">
+            <Calendar className="w-2.5 h-2.5 text-teal-600 shrink-0" />
+            <span>Alta:</span>
+          </span>
+          <strong className="font-semibold text-slate-600">{regInfo.formattedCompact}</strong>
         </span>
       </div>
     </div>

@@ -32,7 +32,8 @@ import {
   PaymentStatus, 
   PaymentMethod, 
   ActivityLog,
-  MedicalService
+  MedicalService,
+  LeadPriority
 } from '../types';
 import { STAGES, PAYMENT_METHODS } from '../data/stages';
 import { SPECIALTIES_LIST } from '../data/specialties';
@@ -80,6 +81,7 @@ export const LeadModal: React.FC<LeadModalProps> = ({
   const [serviceId, setServiceId] = useState('srv-base-1ano');
   const [serviceName, setServiceName] = useState('Perfil Médico 1 año ($99)');
   const [stage, setStage] = useState<StageId>(defaultStage);
+  const [priority, setPriority] = useState<LeadPriority>('media');
   const [estimatedValue, setEstimatedValue] = useState<number>(99);
   const [paidAmount, setPaidAmount] = useState<number>(0);
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>('pendiente');
@@ -116,6 +118,7 @@ export const LeadModal: React.FC<LeadModalProps> = ({
       setServiceId(leadToEdit.serviceId || 'srv-base-1ano');
       setServiceName(leadToEdit.serviceName || (leadToEdit.estimatedValue === 150 ? 'Perfil Médico 2 años ($150)' : 'Perfil Médico 1 año ($99)'));
       setStage(leadToEdit.stage);
+      setPriority(leadToEdit.priority || 'media');
       setEstimatedValue(leadToEdit.estimatedValue);
       setPaidAmount(leadToEdit.paidAmount);
       setPaymentStatus(leadToEdit.paymentStatus);
@@ -140,6 +143,7 @@ export const LeadModal: React.FC<LeadModalProps> = ({
       setServiceId('srv-base-1ano');
       setServiceName('Perfil Médico 1 año ($99)');
       setStage(defaultStage);
+      setPriority('media');
       setEstimatedValue(99);
       setPaidAmount(0);
       setPaymentStatus('no_aplica');
@@ -276,6 +280,8 @@ export const LeadModal: React.FC<LeadModalProps> = ({
       serviceId,
       serviceName,
       stage,
+      priority,
+      order: leadToEdit?.order ?? 0,
       estimatedValue: Number(estimatedValue) || 0,
       paidAmount: Number(paidAmount) || 0,
       paymentStatus,
@@ -723,7 +729,7 @@ export const LeadModal: React.FC<LeadModalProps> = ({
               <span>Etapa de Ventas y Próxima Cita</span>
             </h4>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1">
                   Etapa del Embudo (Kanban) *
@@ -739,6 +745,47 @@ export const LeadModal: React.FC<LeadModalProps> = ({
                     </option>
                   ))}
                 </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Prioridad del Médico *
+                </label>
+                <div className="grid grid-cols-3 gap-1.5 h-[34px]">
+                  <button
+                    type="button"
+                    onClick={() => setPriority('alta')}
+                    className={`text-[11px] font-extrabold rounded-lg border flex items-center justify-center transition-all cursor-pointer ${
+                      priority === 'alta'
+                        ? 'bg-rose-600 text-white border-rose-700 shadow-xs ring-2 ring-rose-500/40'
+                        : 'bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100'
+                    }`}
+                  >
+                    Alta
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPriority('media')}
+                    className={`text-[11px] font-extrabold rounded-lg border flex items-center justify-center transition-all cursor-pointer ${
+                      priority === 'media'
+                        ? 'bg-amber-500 text-white border-amber-600 shadow-xs ring-2 ring-amber-400/40'
+                        : 'bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100'
+                    }`}
+                  >
+                    Media
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPriority('baja')}
+                    className={`text-[11px] font-extrabold rounded-lg border flex items-center justify-center transition-all cursor-pointer ${
+                      priority === 'baja'
+                        ? 'bg-slate-600 text-white border-slate-700 shadow-xs ring-2 ring-slate-500/40'
+                        : 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200'
+                    }`}
+                  >
+                    Baja
+                  </button>
+                </div>
               </div>
 
               <div>

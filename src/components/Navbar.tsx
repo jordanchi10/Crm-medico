@@ -3,6 +3,7 @@ import {
   Stethoscope, 
   Plus, 
   Users, 
+  UserPlus,
   RotateCcw,
   Sparkles,
   Save,
@@ -11,7 +12,11 @@ import {
   ChevronDown,
   Briefcase,
   Bell,
-  BellRing
+  BellRing,
+  LayoutDashboard,
+  BarChart3,
+  MessageCircle,
+  Tag
 } from 'lucide-react';
 import { MedicalLead } from '../types';
 import { formatCurrency } from '../utils/storage';
@@ -227,15 +232,16 @@ export const Navbar: React.FC<NavbarProps> = ({
               {/* PWA Install Button (Mobile & Desktop) */}
               <PWAInstallButton variant="navbar" />
 
-              {/* Primary Action Button: "+ Nuevo Médico" */}
+              {/* Primary Action Button: "Nuevo Médico" (Icon on Mobile, Icon+Text on Desktop) */}
               <button
                 id="btn-new-lead"
                 onClick={onNewLeadClick}
-                className="inline-flex items-center gap-1.5 px-3 sm:px-3.5 py-2 rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 active:from-teal-800 active:to-emerald-800 text-white text-xs font-bold shadow-sm shadow-teal-600/30 hover:shadow-md transition-all whitespace-nowrap cursor-pointer hover:-translate-y-0.5 active:scale-95"
+                title="Registrar Nuevo Especialista Médico"
+                className="inline-flex items-center justify-center gap-1.5 p-2 sm:px-3.5 sm:py-2 rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 active:from-teal-800 active:to-emerald-800 text-white text-xs font-bold shadow-sm shadow-teal-600/30 hover:shadow-md transition-all whitespace-nowrap cursor-pointer hover:-translate-y-0.5 active:scale-95"
+                aria-label="Registrar Nuevo Médico"
               >
-                <Plus className="w-4 h-4" />
-                <span className="hidden xs:inline">Nuevo Médico</span>
-                <span className="xs:hidden">Médico</span>
+                <UserPlus className="w-4 h-4 sm:w-4 sm:h-4 shrink-0" />
+                <span className="hidden sm:inline">Nuevo Médico</span>
               </button>
 
               {/* Options & Backup Dropdown Menu */}
@@ -410,98 +416,125 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
       </header>
 
-      {/* Mobile Bottom Navigation Bar (Native App Dock with 3D Icons, Badges & Haptic Touch Feel) */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-xl border-t border-slate-200/90 shadow-[0_-6px_20px_rgba(0,0,0,0.06)] select-none" style={{ paddingBottom: 'max(0.4rem, env(safe-area-inset-bottom, 0px))' }}>
-        <nav className="grid grid-cols-5 h-15 items-center px-1">
+      {/* Mobile Bottom Navigation Bar (Native App Dock with Crisp High-Contrast Icons & Clear Typography) */}
+      <div 
+        className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-xl border-t border-slate-200/90 shadow-[0_-4px_25px_rgba(0,0,0,0.08)] select-none" 
+        style={{ paddingBottom: 'max(0.4rem, env(safe-area-inset-bottom, 0px))' }}
+      >
+        <nav className="grid grid-cols-5 h-16 items-center px-1">
+          {/* 1. Tablero Kanban */}
           <button
             id="mobile-nav-kanban"
             onClick={() => setCurrentTab('kanban')}
-            className={`relative flex flex-col items-center justify-center h-full py-1 text-[10px] font-bold transition-all cursor-pointer active:scale-90 ${
-              currentTab === 'kanban'
-                ? 'text-teal-700 font-extrabold'
-                : 'text-slate-400 hover:text-slate-600'
-            }`}
+            className="relative flex flex-col items-center justify-center h-full py-1 transition-all cursor-pointer active:scale-95"
+            aria-label="Tablero Kanban"
           >
-            <div className={`relative p-1 rounded-xl transition-all ${currentTab === 'kanban' ? 'bg-teal-50 shadow-2xs scale-105' : ''}`}>
-              <ThreeDKanbanIcon size={22} />
-              {overdueCount > 0 && (
-                <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-rose-600 rounded-full border-2 border-white animate-pulse" />
+            <div className={`relative flex items-center justify-center w-11 h-7 rounded-full transition-all duration-200 ${
+              currentTab === 'kanban'
+                ? 'bg-teal-600 text-white shadow-xs'
+                : 'text-slate-500 hover:text-slate-700'
+            }`}>
+              <LayoutDashboard className="w-4.5 h-4.5 stroke-[2.2]" />
+              {overdueCount > 0 && currentTab !== 'kanban' && (
+                <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-rose-500 rounded-full border-2 border-white animate-pulse" />
               )}
             </div>
-            <span className="leading-tight mt-0.5">Tablero</span>
-            {currentTab === 'kanban' && (
-              <span className="w-1.5 h-1 bg-teal-600 rounded-full mt-0.5 animate-in fade-in" />
-            )}
+            <span className={`text-[11px] leading-none mt-1 transition-colors ${
+              currentTab === 'kanban'
+                ? 'font-bold text-teal-800'
+                : 'font-medium text-slate-500'
+            }`}>
+              Tablero
+            </span>
           </button>
 
+          {/* 2. Médicos (Tabla) */}
           <button
             id="mobile-nav-table"
             onClick={() => setCurrentTab('table')}
-            className={`relative flex flex-col items-center justify-center h-full py-1 text-[10px] font-bold transition-all cursor-pointer active:scale-90 ${
-              currentTab === 'table'
-                ? 'text-teal-700 font-extrabold'
-                : 'text-slate-400 hover:text-slate-600'
-            }`}
+            className="relative flex flex-col items-center justify-center h-full py-1 transition-all cursor-pointer active:scale-95"
+            aria-label="Listado de Médicos"
           >
-            <div className={`relative p-1 rounded-xl transition-all ${currentTab === 'table' ? 'bg-teal-50 shadow-2xs scale-105' : ''}`}>
-              <ThreeDProspectsIcon size={22} />
+            <div className={`relative flex items-center justify-center w-11 h-7 rounded-full transition-all duration-200 ${
+              currentTab === 'table'
+                ? 'bg-teal-600 text-white shadow-xs'
+                : 'text-slate-500 hover:text-slate-700'
+            }`}>
+              <Users className="w-4.5 h-4.5 stroke-[2.2]" />
               {overdueCount > 0 && (
-                <span className="absolute -top-1 -right-1 min-w-[14px] h-[14px] px-0.5 bg-rose-600 text-white text-[9px] font-black rounded-full flex items-center justify-center border border-white">
+                <span className="absolute -top-1 -right-1 min-w-[15px] h-[15px] px-1 bg-rose-600 text-white text-[9px] font-black rounded-full flex items-center justify-center border-2 border-white shadow-xs">
                   {overdueCount}
                 </span>
               )}
             </div>
-            <span className="leading-tight mt-0.5">Médicos</span>
-            {currentTab === 'table' && (
-              <span className="w-1.5 h-1 bg-teal-600 rounded-full mt-0.5 animate-in fade-in" />
-            )}
+            <span className={`text-[11px] leading-none mt-1 transition-colors ${
+              currentTab === 'table'
+                ? 'font-bold text-teal-800'
+                : 'font-medium text-slate-500'
+            }`}>
+              Médicos
+            </span>
           </button>
 
+          {/* 3. Reportes (Analytics) */}
           <button
             id="mobile-nav-analytics"
             onClick={() => setCurrentTab('analytics')}
-            className={`relative flex flex-col items-center justify-center h-full py-1 text-[10px] font-bold transition-all cursor-pointer active:scale-90 ${
-              currentTab === 'analytics'
-                ? 'text-teal-700 font-extrabold'
-                : 'text-slate-400 hover:text-slate-600'
-            }`}
+            className="relative flex flex-col items-center justify-center h-full py-1 transition-all cursor-pointer active:scale-95"
+            aria-label="Reportes y Métricas"
           >
-            <div className={`p-1 rounded-xl transition-all ${currentTab === 'analytics' ? 'bg-teal-50 shadow-2xs scale-105' : ''}`}>
-              <ThreeDAnalyticsIcon size={22} />
+            <div className={`relative flex items-center justify-center w-11 h-7 rounded-full transition-all duration-200 ${
+              currentTab === 'analytics'
+                ? 'bg-teal-600 text-white shadow-xs'
+                : 'text-slate-500 hover:text-slate-700'
+            }`}>
+              <BarChart3 className="w-4.5 h-4.5 stroke-[2.2]" />
             </div>
-            <span className="leading-tight mt-0.5">Reportes</span>
-            {currentTab === 'analytics' && (
-              <span className="w-1.5 h-1 bg-teal-600 rounded-full mt-0.5 animate-in fade-in" />
-            )}
+            <span className={`text-[11px] leading-none mt-1 transition-colors ${
+              currentTab === 'analytics'
+                ? 'font-bold text-teal-800'
+                : 'font-medium text-slate-500'
+            }`}>
+              Reportes
+            </span>
           </button>
 
+          {/* 4. WhatsApp (Plantillas) */}
           <button
             id="mobile-nav-templates"
             onClick={() => setCurrentTab('templates')}
-            className={`relative flex flex-col items-center justify-center h-full py-1 text-[10px] font-bold transition-all cursor-pointer active:scale-90 ${
-              currentTab === 'templates'
-                ? 'text-teal-700 font-extrabold'
-                : 'text-slate-400 hover:text-slate-600'
-            }`}
+            className="relative flex flex-col items-center justify-center h-full py-1 transition-all cursor-pointer active:scale-95"
+            aria-label="Plantillas WhatsApp"
           >
-            <div className={`p-1 rounded-xl transition-all ${currentTab === 'templates' ? 'bg-teal-50 shadow-2xs scale-105' : ''}`}>
-              <ThreeDWhatsAppIcon size={22} />
+            <div className={`relative flex items-center justify-center w-11 h-7 rounded-full transition-all duration-200 ${
+              currentTab === 'templates'
+                ? 'bg-teal-600 text-white shadow-xs'
+                : 'text-slate-500 hover:text-slate-700'
+            }`}>
+              <MessageCircle className="w-4.5 h-4.5 stroke-[2.2]" />
             </div>
-            <span className="leading-tight mt-0.5">WhatsApp</span>
-            {currentTab === 'templates' && (
-              <span className="w-1.5 h-1 bg-teal-600 rounded-full mt-0.5 animate-in fade-in" />
-            )}
+            <span className={`text-[11px] leading-none mt-1 transition-colors ${
+              currentTab === 'templates'
+                ? 'font-bold text-teal-800'
+                : 'font-medium text-slate-500'
+            }`}>
+              WhatsApp
+            </span>
           </button>
 
+          {/* 5. Catálogo de Planes / Servicios */}
           <button
             id="mobile-nav-services"
             onClick={onOpenServicesModal}
-            className="flex flex-col items-center justify-center h-full py-1 text-[10px] font-bold text-teal-800 hover:text-teal-900 transition-all cursor-pointer active:scale-90"
+            className="relative flex flex-col items-center justify-center h-full py-1 transition-all cursor-pointer active:scale-95"
+            aria-label="Planes y Servicios Médicos"
           >
-            <div className="p-1 rounded-xl bg-teal-50/90 border border-teal-200/60 shadow-2xs">
-              <ThreeDServicesIcon size={22} />
+            <div className="relative flex items-center justify-center w-11 h-7 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/80 shadow-2xs hover:bg-emerald-100 transition-colors">
+              <Tag className="w-4.5 h-4.5 stroke-[2.2] text-emerald-700" />
             </div>
-            <span className="leading-tight mt-0.5 font-black text-teal-900">$99 / $150</span>
+            <span className="text-[11px] leading-none mt-1 font-bold text-emerald-800">
+              Planes
+            </span>
           </button>
         </nav>
       </div>

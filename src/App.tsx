@@ -28,7 +28,6 @@ import { NotificationCenter } from './components/NotificationCenter';
 import { getOverdueLeads, notifyStaleLeadsBrowserAlert } from './utils/notificationService';
 import { MobileAppInstallBanner } from './components/MobileAppInstallBanner';
 import { OfflineIndicator } from './components/OfflineIndicator';
-import { MobileFloatingActionButton } from './components/MobileFloatingActionButton';
 
 export default function App() {
   const [leads, setLeads] = useState<MedicalLead[]>(() => loadLeads());
@@ -309,9 +308,6 @@ export default function App() {
         onOpenNotificationCenter={() => setIsNotificationCenterOpen(true)}
         onOpenBulkModal={() => setIsBulkModalOpen(true)}
       />
-
-      {/* Mobile Floating Action Button (FAB) for 1-thumb quick registration */}
-      <MobileFloatingActionButton onClick={() => handleOpenNewLead('prospecto')} />
 
       {/* Main View Area */}
       <main className="flex-1">

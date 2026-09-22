@@ -36,6 +36,24 @@ export function loadLeads(): MedicalLead[] {
         }
         modified = true;
       }
+      if (!updatedLead.priority) {
+        if (updatedLead.tags?.some(t => t.toLowerCase().includes('alta') || t.toLowerCase().includes('urgente'))) {
+          updatedLead.priority = 'alta';
+        } else if (updatedLead.tags?.some(t => t.toLowerCase().includes('vip'))) {
+          updatedLead.priority = 'alta';
+        } else if (idx % 3 === 0) {
+          updatedLead.priority = 'alta';
+        } else if (idx % 3 === 1) {
+          updatedLead.priority = 'media';
+        } else {
+          updatedLead.priority = 'baja';
+        }
+        modified = true;
+      }
+      if (updatedLead.order === undefined) {
+        updatedLead.order = idx;
+        modified = true;
+      }
       return updatedLead;
     });
     if (modified) {
