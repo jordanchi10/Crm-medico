@@ -1,0 +1,6 @@
+{
+  "name": "MedCRM Ecuador - CRM Especialistas Médicos",
+  "description": "CRM de ventas médicas para especialistas en Ecuador (+593), con tablero Kanban, seguimiento por WhatsApp, respaldos diarios locales y analítica de conversión.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
