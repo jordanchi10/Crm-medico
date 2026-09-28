@@ -16,15 +16,19 @@ import {
   Briefcase,
   Clock,
   AlertTriangle,
-  BellRing
+  BellRing,
+  FileText,
+  CheckSquare,
+  Square
 } from 'lucide-react';
 import { MedicalLead, StageId } from '../types';
 import { STAGES } from '../data/stages';
-import { SPECIALTIES_LIST, getSpecialtyMeta } from '../data/specialties';
+import { getAllSpecialties, getSpecialtyMeta } from '../data/specialties';
 import { ECUADOR_CITIES, ECUADOR_SECTORS } from '../data/ecuadorData';
 import { formatCurrency } from '../utils/storage';
 import { getLeadOverdueInfo } from '../utils/notificationService';
 import { getLeadRegistrationInfo } from '../utils/dateUtils';
+import { DeleteConfirmationModal } from './DeleteConfirmationModal';
 
 interface LeadsTableViewProps {
   leads: MedicalLead[];
@@ -32,6 +36,7 @@ interface LeadsTableViewProps {
   onOpenWhatsApp: (lead: MedicalLead) => void;
   onDeleteLead: (leadId: string) => void;
   onStageChange: (leadId: string, newStage: StageId) => void;
+  onOpenReceipt?: (lead: MedicalLead) => void;
 }
 
 export const LeadsTableView: React.FC<LeadsTableViewProps> = ({
@@ -40,6 +45,7 @@ export const LeadsTableView: React.FC<LeadsTableViewProps> = ({
   onOpenWhatsApp,
   onDeleteLead,
   onStageChange,
+  onOpenReceipt,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSpecialty, setSelectedSpecialty] = useState<string>('all');
@@ -52,6 +58,11 @@ export const LeadsTableView: React.FC<LeadsTableViewProps> = ({
   const [sortBy, setSortBy] = useState<'name' | 'value' | 'date' | 'registered'>('date');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   
+  // Selection and Deletion State
+  const [selectedLeadIds, setSelectedLeadIds] = useState<string[]>([]);
+  const [leadToDelete, setLeadToDelete] = useState<MedicalLead | null>(null);
+  const [isConfirmingBulkDelete, setIsConfirmingBulkDelete] = useState(false);
+
   // UI filter tray state
   const [isFilterTrayOpen, setIsFilterTrayOpen] = useState(false);
 
@@ -151,11 +162,33 @@ export const LeadsTableView: React.FC<LeadsTableViewProps> = ({
     setSelectedPaymentStatus('all');
   };
 
+  const handleToggleSelectAll = () => {
+    if (selectedLeadIds.length === sorted.length && sorted.length > 0) {
+      setSelectedLeadIds([]);
+    } else {
+      setSelectedLeadIds(sorted.map((l) => l.id));
+    }
+  };
+
+  const handleToggleSelectLead = (id: string) => {
+    setSelectedLeadIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  };
+
+  const handleBulkDeleteConfirm = () => {
+    selectedLeadIds.forEach((id) => onDeleteLead(id));
+    setSelectedLeadIds([]);
+    setIsConfirmingBulkDelete(false);
+  };
+
+  const isAllSelected = sorted.length > 0 && selectedLeadIds.length === sorted.length;
+
   return (
-    <div className="p-3 sm:p-6 max-w-7xl mx-auto space-y-4 pb-20 md:pb-6">
+    <div className="p-3 sm:p-6 w-full space-y-4 pb-20 md:pb-6">
       
       {/* Search Bar & Filters Tray */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-3 sm:p-4 shadow-2xs space-y-2.5">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 p-3 sm:p-4 shadow-2xs space-y-2.5 transition-colors duration-200">
         
         <div className="flex flex-col sm:flex-row gap-2.5 items-stretch sm:items-center justify-between">
           
@@ -167,12 +200,12 @@ export const LeadsTableView: React.FC<LeadsTableViewProps> = ({
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Buscar por médico, sector (Jocay, Centro...), clínica o teléfono..."
-              className="w-full text-xs pl-9 pr-8 py-2 rounded-xl bg-slate-50 hover:bg-slate-100/80 focus:bg-white border border-slate-200 focus:border-teal-500 focus:outline-none transition-all placeholder:text-slate-400 font-medium"
+              className="w-full text-xs pl-9 pr-8 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 hover:bg-slate-100/80 dark:hover:bg-slate-750 focus:bg-white dark:focus:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-teal-500 focus:outline-none transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500 font-medium text-slate-900 dark:text-slate-100"
             />
             {searchTerm && (
               <button
                 onClick={() => setSearchTerm('')}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5 cursor-pointer"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-0.5 cursor-pointer"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -194,11 +227,11 @@ export const LeadsTableView: React.FC<LeadsTableViewProps> = ({
                 onlyOverdue48h
                   ? 'bg-rose-600 text-white border-rose-600 shadow-xs'
                   : overdueCount > 0
-                  ? 'bg-rose-50 text-rose-800 border-rose-300 hover:bg-rose-100 shadow-2xs'
-                  : 'bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100'
+                  ? 'bg-rose-50 dark:bg-rose-950/40 text-rose-800 dark:text-rose-300 border-rose-300 dark:border-rose-800 hover:bg-rose-100 dark:hover:bg-rose-900/50 shadow-2xs'
+                  : 'bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-750'
               }`}
             >
-              <Clock className={`w-3.5 h-3.5 ${onlyOverdue48h ? 'text-white' : overdueCount > 0 ? 'text-rose-600 animate-pulse' : 'text-slate-400'}`} />
+              <Clock className={`w-3.5 h-3.5 ${onlyOverdue48h ? 'text-white' : overdueCount > 0 ? 'text-rose-600 dark:text-rose-400 animate-pulse' : 'text-slate-400'}`} />
               <span className="hidden xs:inline">Sin contacto (+48h)</span>
               <span className="xs:hidden">+48h</span>
               {overdueCount > 0 && (
@@ -214,8 +247,8 @@ export const LeadsTableView: React.FC<LeadsTableViewProps> = ({
               onClick={() => setIsFilterTrayOpen(!isFilterTrayOpen)}
               className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
                 activeFiltersCount > 0 || isFilterTrayOpen
-                  ? 'bg-teal-50 text-teal-800 border-teal-300 shadow-2xs'
-                  : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200'
+                  ? 'bg-teal-50 dark:bg-teal-950/40 text-teal-800 dark:text-teal-300 border-teal-300 dark:border-teal-700 shadow-2xs'
+                  : 'bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-750 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700'
               }`}
             >
               <SlidersHorizontal className="w-3.5 h-3.5" />
@@ -227,17 +260,17 @@ export const LeadsTableView: React.FC<LeadsTableViewProps> = ({
               )}
             </button>
 
-            <div className="text-xs text-slate-500 whitespace-nowrap">
-              <span><strong className="text-slate-800 font-bold">{sorted.length}</strong> de {leads.length} médicos</span>
+            <div className="text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">
+              <span><strong className="text-slate-800 dark:text-slate-200 font-bold">{sorted.length}</strong> de {leads.length} médicos</span>
             </div>
           </div>
 
         </div>
 
         {/* Quick Sector Locación Segment Pills */}
-        <div className="pt-2 border-t border-slate-100 flex flex-wrap items-center gap-1.5 text-xs">
-          <span className="text-[11px] font-bold text-slate-500 flex items-center gap-1 mr-1">
-            <MapPin className="w-3.5 h-3.5 text-teal-600" />
+        <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center gap-1.5 text-xs">
+          <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 flex items-center gap-1 mr-1">
+            <MapPin className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />
             <span>Locación:</span>
           </span>
           <button
@@ -246,7 +279,7 @@ export const LeadsTableView: React.FC<LeadsTableViewProps> = ({
             className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
               selectedSector === 'all'
                 ? 'bg-teal-600 text-white shadow-2xs'
-                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-750'
             }`}
           >
             Todos
@@ -259,7 +292,7 @@ export const LeadsTableView: React.FC<LeadsTableViewProps> = ({
               className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1 ${
                 selectedSector === sec
                   ? 'bg-teal-600 text-white shadow-2xs'
-                  : 'bg-slate-50 text-slate-700 border border-slate-200 hover:bg-slate-100'
+                  : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-750'
               }`}
             >
               <span>{sec}</span>
@@ -267,9 +300,9 @@ export const LeadsTableView: React.FC<LeadsTableViewProps> = ({
           ))}
 
           {/* Quick Service Filter Pills */}
-          <div className="hidden sm:flex items-center gap-1.5 ml-auto pl-2 border-l border-slate-200">
-            <span className="text-[11px] font-bold text-slate-500 flex items-center gap-1">
-              <Briefcase className="w-3.5 h-3.5 text-teal-600" />
+          <div className="hidden sm:flex items-center gap-1.5 ml-auto pl-2 border-l border-slate-200 dark:border-slate-800">
+            <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 flex items-center gap-1">
+              <Briefcase className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />
               <span>Plan:</span>
             </span>
             <button
@@ -278,7 +311,7 @@ export const LeadsTableView: React.FC<LeadsTableViewProps> = ({
               className={`px-2 py-0.5 rounded-md text-[11px] font-bold transition-all cursor-pointer ${
                 selectedService === '99'
                   ? 'bg-teal-700 text-white'
-                  : 'bg-teal-50 text-teal-800 border border-teal-200 hover:bg-teal-100'
+                  : 'bg-teal-50 dark:bg-teal-950/40 text-teal-800 dark:text-teal-300 border border-teal-200 dark:border-teal-800 hover:bg-teal-100 dark:hover:bg-teal-900/50'
               }`}
             >
               1 año ($99)
@@ -289,7 +322,7 @@ export const LeadsTableView: React.FC<LeadsTableViewProps> = ({
               className={`px-2 py-0.5 rounded-md text-[11px] font-bold transition-all cursor-pointer ${
                 selectedService === '150'
                   ? 'bg-teal-700 text-white'
-                  : 'bg-teal-50 text-teal-800 border border-teal-200 hover:bg-teal-100'
+                  : 'bg-teal-50 dark:bg-teal-950/40 text-teal-800 dark:text-teal-300 border border-teal-200 dark:border-teal-800 hover:bg-teal-100 dark:hover:bg-teal-900/50'
               }`}
             >
               2 años ($150)
@@ -299,21 +332,21 @@ export const LeadsTableView: React.FC<LeadsTableViewProps> = ({
 
         {/* Collapsible Filter Tray */}
         {isFilterTrayOpen && (
-          <div className="pt-2.5 border-t border-slate-100 animate-in fade-in duration-100">
+          <div className="pt-2.5 border-t border-slate-100 dark:border-slate-800 animate-in fade-in duration-100">
             <div className="grid grid-cols-1 sm:grid-cols-4 gap-2.5">
               
               {/* Specialty */}
               <div>
-                <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">
                   Especialidad Médica
                 </label>
                 <select
                   value={selectedSpecialty}
                   onChange={(e) => setSelectedSpecialty(e.target.value)}
-                  className="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  className="w-full text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1.5 text-slate-700 dark:text-slate-200 font-medium focus:outline-none focus:ring-2 focus:ring-teal-500"
                 >
-                  <option value="all">Todas las Especialidades</option>
-                  {SPECIALTIES_LIST.map((spec) => (
+                  <option value="all">Todas las Especialidades ({getAllSpecialties().length})</option>
+                  {getAllSpecialties().map((spec) => (
                     <option key={spec.name} value={spec.name}>
                       {spec.name}
                     </option>
@@ -323,13 +356,13 @@ export const LeadsTableView: React.FC<LeadsTableViewProps> = ({
 
               {/* Stage */}
               <div>
-                <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">
                   Etapa del Embudo
                 </label>
                 <select
                   value={selectedStage}
                   onChange={(e) => setSelectedStage(e.target.value)}
-                  className="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  className="w-full text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1.5 text-slate-700 dark:text-slate-200 font-medium focus:outline-none focus:ring-2 focus:ring-teal-500"
                 >
                   <option value="all">Todas las Etapas</option>
                   {STAGES.map((st) => (
@@ -342,13 +375,13 @@ export const LeadsTableView: React.FC<LeadsTableViewProps> = ({
 
               {/* Sector */}
               <div>
-                <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">
                   Sector / Locación
                 </label>
                 <select
                   value={selectedSector}
                   onChange={(e) => setSelectedSector(e.target.value)}
-                  className="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  className="w-full text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1.5 text-slate-700 dark:text-slate-200 font-medium focus:outline-none focus:ring-2 focus:ring-teal-500"
                 >
                   <option value="all">Todos los Sectores</option>
                   {ECUADOR_SECTORS.map((sec) => (
@@ -361,13 +394,13 @@ export const LeadsTableView: React.FC<LeadsTableViewProps> = ({
 
               {/* Payment status */}
               <div>
-                <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300 mb-1">
                   Estado de Pago
                 </label>
                 <select
                   value={selectedPaymentStatus}
                   onChange={(e) => setSelectedPaymentStatus(e.target.value)}
-                  className="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  className="w-full text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1.5 text-slate-700 dark:text-slate-200 font-medium focus:outline-none focus:ring-2 focus:ring-teal-500"
                 >
                   <option value="all">Todos los Estados</option>
                   <option value="pagado">Pagado Total</option>
@@ -384,7 +417,7 @@ export const LeadsTableView: React.FC<LeadsTableViewProps> = ({
               <div className="flex justify-end mt-2">
                 <button
                   onClick={clearAllFilters}
-                  className="text-xs text-rose-600 hover:text-rose-700 font-semibold flex items-center gap-1 cursor-pointer"
+                  className="text-xs text-rose-600 dark:text-rose-400 hover:underline font-semibold flex items-center gap-1 cursor-pointer"
                 >
                   <X className="w-3 h-3" />
                   <span>Limpiar todos los filtros</span>
@@ -398,95 +431,135 @@ export const LeadsTableView: React.FC<LeadsTableViewProps> = ({
 
       {/* MOBILE RESPONSIVE CARD LIST VIEW (< md) */}
       <div className="md:hidden space-y-3">
+        {/* Mobile Batch Selection Quick Switcher */}
+        {sorted.length > 0 && (
+          <div className="flex items-center justify-between px-2 py-1 text-xs text-slate-500 dark:text-slate-400">
+            <button
+              type="button"
+              onClick={handleToggleSelectAll}
+              className="flex items-center gap-1.5 font-bold text-teal-700 dark:text-teal-400 hover:underline cursor-pointer"
+            >
+              {isAllSelected ? (
+                <CheckSquare className="w-4 h-4 text-teal-600" />
+              ) : (
+                <Square className="w-4 h-4 text-slate-400" />
+              )}
+              <span>{isAllSelected ? 'Desmarcar todos' : `Seleccionar todos (${sorted.length})`}</span>
+            </button>
+            {selectedLeadIds.length > 0 && (
+              <span className="font-semibold text-slate-700 dark:text-slate-300">
+                {selectedLeadIds.length} seleccionados
+              </span>
+            )}
+          </div>
+        )}
+
         {sorted.map((lead) => {
           const spec = getSpecialtyMeta(lead.specialty);
           const overdue = getLeadOverdueInfo(lead, 48);
+          const isSelected = selectedLeadIds.includes(lead.id);
+
           return (
             <div
               key={lead.id}
-              className={`bg-white rounded-xl border p-4 shadow-2xs space-y-3 ${
-                overdue.isOverdue ? 'border-rose-300 ring-1 ring-rose-200' : 'border-slate-200'
+              className={`bg-white dark:bg-slate-850 rounded-xl border p-4 shadow-2xs space-y-3 transition-all ${
+                isSelected ? 'ring-2 ring-teal-500 border-teal-400 bg-teal-50/20 dark:bg-teal-950/30' : ''
+              } ${
+                overdue.isOverdue && !isSelected ? 'border-rose-300 dark:border-rose-800 ring-1 ring-rose-200 dark:ring-rose-900/40' : 'border-slate-200 dark:border-slate-800'
               }`}
             >
               {/* Overdue alert header on card */}
               {overdue.isOverdue && (
-                <div className="flex items-center justify-between px-2.5 py-1 rounded-lg bg-rose-50 border border-rose-200 text-rose-800 text-[10px] font-bold">
+                <div className="flex items-center justify-between px-2.5 py-1 rounded-lg bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-300 text-[10px] font-bold">
                   <span className="flex items-center gap-1">
-                    <Clock className="w-3 h-3 text-rose-600 animate-pulse" />
+                    <Clock className="w-3 h-3 text-rose-600 dark:text-rose-400 animate-pulse" />
                     <span>Inactivo: +{overdue.hoursElapsed}h sin contacto ({overdue.daysElapsed}d)</span>
                   </span>
-                  <span className="uppercase text-[9px] text-rose-600">Alerta 48h</span>
+                  <span className="uppercase text-[9px] text-rose-600 dark:text-rose-400">Alerta 48h</span>
                 </div>
               )}
 
-              {/* Top row: Doctor name + Specialty */}
+              {/* Top row: Checkbox + Doctor name + Specialty */}
               <div className="flex items-start justify-between gap-2">
-                <div>
-                  <h4 className="font-bold text-sm text-slate-900">{lead.doctorName}</h4>
-                  <div className="flex items-center gap-1.5 text-xs text-slate-500 mt-0.5">
-                    <Building2 className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                    <span>{lead.clinicOrHospital}</span>
-                  </div>
-                  
-                  {/* Sector & City tags */}
-                  <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
-                    {lead.sector && (
-                      <span className="inline-flex items-center text-[10px] font-bold text-teal-800 bg-teal-50 border border-teal-200 px-1.5 py-0.2 rounded">
-                        📍 {lead.sector}
-                      </span>
+                <div className="flex items-start gap-2.5 min-w-0">
+                  <button
+                    type="button"
+                    onClick={() => handleToggleSelectLead(lead.id)}
+                    className="mt-0.5 text-slate-400 hover:text-teal-600 cursor-pointer shrink-0"
+                  >
+                    {isSelected ? (
+                      <CheckSquare className="w-4 h-4 text-teal-600" />
+                    ) : (
+                      <Square className="w-4 h-4 text-slate-400" />
                     )}
-                    {lead.city && (
-                      <span className="inline-block text-[10px] font-medium text-slate-600 bg-slate-100 px-1.5 py-0.2 rounded">
-                        🇪🇨 {lead.city}
+                  </button>
+                  <div className="min-w-0">
+                    <h4 className="font-bold text-sm text-slate-900 dark:text-slate-100 truncate">{lead.doctorName}</h4>
+                    <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                      <Building2 className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 shrink-0" />
+                      <span className="truncate">{lead.clinicOrHospital}</span>
+                    </div>
+                    
+                    {/* Sector & City tags */}
+                    <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
+                      {lead.sector && (
+                        <span className="inline-flex items-center text-[10px] font-bold text-teal-800 dark:text-teal-300 bg-teal-50 dark:bg-teal-950/50 border border-teal-200 dark:border-teal-800 px-1.5 py-0.2 rounded">
+                          📍 {lead.sector}
+                        </span>
+                      )}
+                      {lead.city && (
+                        <span className="inline-block text-[10px] font-medium text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.2 rounded border border-transparent dark:border-slate-700">
+                          🇪🇨 {lead.city}
+                        </span>
+                      )}
+                      <span 
+                        className="inline-flex items-center gap-1 text-[10px] font-semibold text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-1.5 py-0.2 rounded"
+                        title={`Registrado en plataforma el ${getLeadRegistrationInfo(lead).formattedFull}`}
+                      >
+                        <Calendar className="w-2.5 h-2.5 text-teal-600 dark:text-teal-400" />
+                        <span>Reg: {getLeadRegistrationInfo(lead).formattedCompact}</span>
                       </span>
-                    )}
-                    <span 
-                      className="inline-flex items-center gap-1 text-[10px] font-semibold text-slate-600 bg-slate-50 border border-slate-200 px-1.5 py-0.2 rounded"
-                      title={`Registrado en plataforma el ${getLeadRegistrationInfo(lead).formattedFull}`}
-                    >
-                      <Calendar className="w-2.5 h-2.5 text-teal-600" />
-                      <span>Reg: {getLeadRegistrationInfo(lead).formattedCompact}</span>
-                    </span>
+                    </div>
                   </div>
                 </div>
 
-                <span className={`inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded border ${spec.bgLight} ${spec.color} ${spec.borderLight} shrink-0`}>
+                <span className={`inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded border ${spec.bgLight} dark:bg-opacity-20 ${spec.color} ${spec.borderLight} dark:border-opacity-30 shrink-0`}>
                   {lead.specialty}
                 </span>
               </div>
 
               {/* Service & Financials info */}
-              <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100 text-xs">
+              <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100 dark:border-slate-800 text-xs">
                 <div>
-                  <span className="block text-[10px] text-slate-400 uppercase font-semibold">Servicio / Plan</span>
-                  <div className="font-bold text-slate-800 mt-0.5 truncate">
+                  <span className="block text-[10px] text-slate-400 dark:text-slate-500 uppercase font-semibold">Servicio / Plan</span>
+                  <div className="font-bold text-slate-800 dark:text-slate-200 mt-0.5 truncate">
                     {lead.serviceName || (lead.estimatedValue === 99 ? 'Perfil 1 año' : lead.estimatedValue === 150 ? 'Perfil 2 años' : 'Personalizado')}
                   </div>
-                  <div className="text-[11px] font-bold text-teal-700">
+                  <div className="text-[11px] font-bold text-teal-700 dark:text-teal-400">
                     {formatCurrency(lead.estimatedValue)}
                   </div>
                 </div>
 
                 <div>
-                  <span className="block text-[10px] text-slate-400 uppercase font-semibold">Estado Cobro</span>
+                  <span className="block text-[10px] text-slate-400 dark:text-slate-500 uppercase font-semibold">Estado Cobro</span>
                   <div className="mt-0.5">
                     {lead.paymentStatus === 'pagado' && (
-                      <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 inline-block">
+                      <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 px-1.5 py-0.5 rounded border border-emerald-200 dark:border-emerald-800 inline-block">
                         Pagado ({formatCurrency(lead.paidAmount)})
                       </span>
                     )}
                     {lead.paymentStatus === 'parcial' && (
-                      <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200 inline-block">
+                      <span className="text-[10px] font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/50 px-1.5 py-0.5 rounded border border-amber-200 dark:border-amber-800 inline-block">
                         Anticipo: {formatCurrency(lead.paidAmount)}
                       </span>
                     )}
                     {lead.paymentStatus === 'pendiente' && (
-                      <span className="text-[10px] font-medium text-rose-700 bg-rose-50 px-1.5 py-0.5 rounded border border-rose-200 inline-block">
+                      <span className="text-[10px] font-medium text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/40 px-1.5 py-0.5 rounded border border-rose-200 dark:border-rose-800 inline-block">
                         Pendiente
                       </span>
                     )}
                     {lead.paymentStatus === 'no_aplica' && (
-                      <span className="text-[10px] text-slate-400">N/A</span>
+                      <span className="text-[10px] text-slate-400 dark:text-slate-500">N/A</span>
                     )}
                   </div>
                 </div>
@@ -494,11 +567,11 @@ export const LeadsTableView: React.FC<LeadsTableViewProps> = ({
 
               {/* Stage selector */}
               <div>
-                <span className="block text-[10px] text-slate-400 uppercase font-semibold">Etapa del Proceso</span>
+                <span className="block text-[10px] text-slate-400 dark:text-slate-500 uppercase font-semibold">Etapa del Proceso</span>
                 <select
                   value={lead.stage}
                   onChange={(e) => onStageChange(lead.id, e.target.value as StageId)}
-                  className="w-full mt-0.5 text-xs font-semibold rounded-lg px-2 py-1.5 bg-slate-50 border border-slate-200 text-slate-800"
+                  className="w-full mt-0.5 text-xs font-semibold rounded-lg px-2 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200"
                 >
                   {STAGES.map((st) => (
                     <option key={st.id} value={st.id}>
@@ -510,40 +583,51 @@ export const LeadsTableView: React.FC<LeadsTableViewProps> = ({
 
               {/* Next follow up info */}
               {lead.nextFollowUpDate && (
-                <div className="flex items-center gap-1.5 text-xs text-slate-500 bg-slate-50 p-2 rounded-lg">
+                <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/80 p-2 rounded-lg border border-slate-100 dark:border-slate-800">
                   <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                  <span>Seguimiento: <strong>{lead.nextFollowUpDate}</strong> {lead.nextFollowUpTime || ''}</span>
+                  <span>Seguimiento: <strong className="text-slate-700 dark:text-slate-300">{lead.nextFollowUpDate}</strong> {lead.nextFollowUpTime || ''}</span>
                 </div>
               )}
 
               {/* Action buttons */}
-              <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-100">
+              <div className="grid grid-cols-4 gap-1.5 pt-2 border-t border-slate-100 dark:border-slate-800">
                 <button
                   onClick={() => onOpenWhatsApp(lead)}
-                  className="col-span-1 inline-flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-2xs cursor-pointer"
+                  className="col-span-1 inline-flex items-center justify-center gap-1 py-2 px-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-[11px] font-bold shadow-2xs cursor-pointer"
+                  title="WhatsApp"
                 >
-                  <MessageCircle className="w-4 h-4 fill-white" />
-                  <span>WhatsApp</span>
+                  <MessageCircle className="w-3.5 h-3.5 fill-white" />
+                  <span>WA</span>
                 </button>
+
+                {onOpenReceipt && (
+                  <button
+                    onClick={() => onOpenReceipt(lead)}
+                    className="col-span-1 inline-flex items-center justify-center gap-1 py-2 px-2 rounded-xl bg-teal-50 dark:bg-teal-950/40 hover:bg-teal-100 dark:hover:bg-teal-900/50 text-teal-800 dark:text-teal-300 text-[11px] font-bold border border-teal-200 dark:border-teal-800 cursor-pointer"
+                    title="Emitir Recibo Oficial Digital"
+                  >
+                    <FileText className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />
+                    <span>Recibo</span>
+                  </button>
+                )}
 
                 <button
                   onClick={() => onOpenEdit(lead)}
-                  className="col-span-1 inline-flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold cursor-pointer"
+                  className="col-span-1 inline-flex items-center justify-center gap-1 py-2 px-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-750 text-slate-700 dark:text-slate-300 text-[11px] font-semibold cursor-pointer border border-transparent dark:border-slate-700"
+                  title="Ver Ficha"
                 >
                   <Edit3 className="w-3.5 h-3.5" />
                   <span>Ficha</span>
                 </button>
 
                 <button
-                  onClick={() => {
-                    if (window.confirm(`¿Eliminar al ${lead.doctorName}?`)) {
-                      onDeleteLead(lead.id);
-                    }
-                  }}
-                  className="col-span-1 inline-flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-semibold cursor-pointer"
+                  type="button"
+                  onClick={() => setLeadToDelete(lead)}
+                  className="col-span-1 inline-flex items-center justify-center gap-1 py-2 px-2 rounded-xl bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/50 active:bg-rose-200 text-rose-600 dark:text-rose-400 text-[11px] font-semibold cursor-pointer border border-rose-200/60 dark:border-rose-800"
+                  title="Eliminar especialista"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
-                  <span>Eliminar</span>
+                  <span>Borrar</span>
                 </button>
               </div>
 
@@ -552,21 +636,37 @@ export const LeadsTableView: React.FC<LeadsTableViewProps> = ({
         })}
 
         {sorted.length === 0 && (
-          <div className="bg-white rounded-xl border border-slate-200 py-12 px-4 text-center text-slate-400 text-xs">
+          <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 py-12 px-4 text-center text-slate-400 dark:text-slate-500 text-xs">
             No se encontraron médicos con los filtros aplicados.
           </div>
         )}
       </div>
 
       {/* DESKTOP DATA TABLE (Visible on md and up) */}
-      <div className="hidden md:block bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
+      <div className="hidden md:block bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-2xs overflow-hidden transition-colors duration-200">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs text-slate-700">
-            <thead className="bg-slate-50/80 border-b border-slate-200 text-slate-500 uppercase tracking-wider text-[10px]">
+          <table className="w-full text-left text-xs text-slate-700 dark:text-slate-200">
+            <thead className="bg-slate-50/90 dark:bg-slate-800/80 border-b border-slate-200/90 dark:border-slate-800 text-slate-500 dark:text-slate-400 uppercase tracking-wider text-[10px]">
               <tr>
+                {/* Select All Checkbox */}
+                <th className="py-3 px-3.5 w-10 text-center select-none">
+                  <button
+                    type="button"
+                    onClick={handleToggleSelectAll}
+                    className="text-slate-400 hover:text-teal-600 cursor-pointer flex items-center justify-center"
+                    title={isAllSelected ? 'Desmarcar todos' : 'Seleccionar todos'}
+                  >
+                    {isAllSelected ? (
+                      <CheckSquare className="w-4 h-4 text-teal-600" />
+                    ) : (
+                      <Square className="w-4 h-4 text-slate-400" />
+                    )}
+                  </button>
+                </th>
+
                 <th
                   onClick={() => toggleSort('name')}
-                  className="py-3 px-4 font-bold cursor-pointer hover:text-slate-900 select-none"
+                  className="py-3 px-4 font-bold cursor-pointer hover:text-slate-900 dark:hover:text-slate-100 select-none"
                 >
                   <div className="flex items-center gap-1">
                     <span>Médico & Locación</span>
@@ -577,7 +677,7 @@ export const LeadsTableView: React.FC<LeadsTableViewProps> = ({
                 <th className="py-3 px-4 font-bold">Etapa Embudo</th>
                 <th
                   onClick={() => toggleSort('value')}
-                  className="py-3 px-4 font-bold cursor-pointer hover:text-slate-900 select-none"
+                  className="py-3 px-4 font-bold cursor-pointer hover:text-slate-900 dark:hover:text-slate-100 select-none"
                 >
                   <div className="flex items-center gap-1">
                     <span>Servicio / Plan</span>
@@ -588,7 +688,7 @@ export const LeadsTableView: React.FC<LeadsTableViewProps> = ({
                 <th className="py-3 px-4 font-bold">Método Pago</th>
                 <th
                   onClick={() => toggleSort('registered')}
-                  className="py-3 px-4 font-bold cursor-pointer hover:text-slate-900 select-none"
+                  className="py-3 px-4 font-bold cursor-pointer hover:text-slate-900 dark:hover:text-slate-100 select-none"
                 >
                   <div className="flex items-center gap-1">
                     <span>Fecha Registro</span>
@@ -597,7 +697,7 @@ export const LeadsTableView: React.FC<LeadsTableViewProps> = ({
                 </th>
                 <th
                   onClick={() => toggleSort('date')}
-                  className="py-3 px-4 font-bold cursor-pointer hover:text-slate-900 select-none"
+                  className="py-3 px-4 font-bold cursor-pointer hover:text-slate-900 dark:hover:text-slate-100 select-none"
                 >
                   <div className="flex items-center gap-1">
                     <span>Próx. Seguimiento</span>
@@ -607,57 +707,73 @@ export const LeadsTableView: React.FC<LeadsTableViewProps> = ({
                 <th className="py-3 px-4 font-bold text-right">Acciones</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
               {sorted.map((lead) => {
                 const spec = getSpecialtyMeta(lead.specialty);
                 const overdue = getLeadOverdueInfo(lead, 48);
                 const regInfo = getLeadRegistrationInfo(lead);
+                const isSelected = selectedLeadIds.includes(lead.id);
 
                 return (
                   <tr
                     key={lead.id}
                     id={`table-row-${lead.id}`}
-                    className={`hover:bg-slate-50/80 transition-colors ${
-                      overdue.isOverdue ? 'bg-rose-50/30' : ''
-                    }`}
+                    className={`hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors ${
+                      isSelected ? 'bg-teal-50/40 dark:bg-teal-950/30 font-medium' : ''
+                    } ${overdue.isOverdue && !isSelected ? 'bg-rose-50/30 dark:bg-rose-950/20' : ''}`}
                   >
+                    {/* Row Checkbox */}
+                    <td className="py-3 px-3.5 text-center">
+                      <button
+                        type="button"
+                        onClick={() => handleToggleSelectLead(lead.id)}
+                        className="text-slate-400 hover:text-teal-600 cursor-pointer flex items-center justify-center mx-auto"
+                      >
+                        {isSelected ? (
+                          <CheckSquare className="w-4 h-4 text-teal-600" />
+                        ) : (
+                          <Square className="w-4 h-4 text-slate-400" />
+                        )}
+                      </button>
+                    </td>
+
                     {/* Doctor, Clinic & Sector */}
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className="font-bold text-slate-900">{lead.doctorName}</span>
+                        <span className="font-bold text-slate-900 dark:text-slate-100">{lead.doctorName}</span>
                         {overdue.isOverdue && (
                           <span 
                             title={`Sin contacto hace ${overdue.hoursElapsed} horas`}
-                            className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-rose-100 text-rose-700 text-[9px] font-black border border-rose-200 animate-pulse"
+                            className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 text-[9px] font-black border border-rose-200 dark:border-rose-800 animate-pulse"
                           >
-                            <Clock className="w-2.5 h-2.5 text-rose-600" />
+                            <Clock className="w-2.5 h-2.5 text-rose-600 dark:text-rose-400" />
                             <span>+{overdue.hoursElapsed}h sin contacto</span>
                           </span>
                         )}
                       </div>
-                      <div className="flex items-center gap-1 text-[11px] text-slate-500 mt-0.5">
+                      <div className="flex items-center gap-1 text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
                         <Building2 className="w-3 h-3 text-slate-400 shrink-0" />
                         <span className="truncate max-w-[200px]">{lead.clinicOrHospital}</span>
                       </div>
-                      <div className="flex items-center gap-1.5 text-[10px] text-slate-500 mt-1 flex-wrap">
+                      <div className="flex items-center gap-1.5 text-[10px] text-slate-500 dark:text-slate-400 mt-1 flex-wrap">
                         {lead.sector && (
-                          <span className="font-bold text-teal-800 bg-teal-50 border border-teal-200 px-1.5 py-0.2 rounded text-[9px]">
+                          <span className="font-bold text-teal-800 dark:text-teal-300 bg-teal-50 dark:bg-teal-950/50 border border-teal-200 dark:border-teal-800 px-1.5 py-0.2 rounded text-[9px]">
                             📍 {lead.sector}
                           </span>
                         )}
                         {lead.city && (
-                          <span className="text-slate-600 bg-slate-100 px-1.5 py-0.2 rounded text-[9px]">
+                          <span className="text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.2 rounded text-[9px]">
                             🇪🇨 {lead.city}
                           </span>
                         )}
-                        <span className="font-mono text-[9px] text-slate-400">{lead.phone}</span>
+                        <span className="font-mono text-[9px] text-slate-400 dark:text-slate-500">{lead.phone}</span>
                       </div>
                     </td>
 
                     {/* Specialty */}
                     <td className="py-3 px-4">
                       <span
-                        className={`inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded border ${spec.bgLight} ${spec.color} ${spec.borderLight}`}
+                        className={`inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded border ${spec.bgLight} dark:bg-opacity-20 ${spec.color} ${spec.borderLight} dark:border-opacity-30`}
                       >
                         {lead.specialty}
                       </span>
@@ -668,7 +784,7 @@ export const LeadsTableView: React.FC<LeadsTableViewProps> = ({
                       <select
                         value={lead.stage}
                         onChange={(e) => onStageChange(lead.id, e.target.value as StageId)}
-                        className="text-[11px] font-medium rounded-lg px-2 py-1 bg-slate-50 border border-slate-200 text-slate-800 focus:outline-none focus:ring-1 focus:ring-teal-500 cursor-pointer"
+                        className="text-[11px] font-medium rounded-lg px-2 py-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-teal-500 cursor-pointer"
                       >
                         {STAGES.map((st) => (
                           <option key={st.id} value={st.id}>
@@ -680,10 +796,10 @@ export const LeadsTableView: React.FC<LeadsTableViewProps> = ({
 
                     {/* Service / Value */}
                     <td className="py-3 px-4">
-                      <div className="font-bold text-slate-800">
+                      <div className="font-bold text-slate-800 dark:text-slate-200">
                         {formatCurrency(lead.estimatedValue)}
                       </div>
-                      <div className="text-[10px] text-teal-700 font-semibold truncate max-w-[140px]">
+                      <div className="text-[10px] text-teal-700 dark:text-teal-400 font-semibold truncate max-w-[140px]">
                         {lead.serviceName || (lead.estimatedValue === 99 ? 'Perfil 1 año ($99)' : lead.estimatedValue === 150 ? 'Perfil 2 años ($150)' : 'Personalizado')}
                       </div>
                     </td>
@@ -691,39 +807,39 @@ export const LeadsTableView: React.FC<LeadsTableViewProps> = ({
                     {/* Payment status */}
                     <td className="py-3 px-4">
                       {lead.paymentStatus === 'pagado' && (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-300 border border-emerald-200/50 dark:border-emerald-800/50">
                           <CheckCircle2 className="w-3 h-3 text-emerald-600" />
                           Pagado ({formatCurrency(lead.paidAmount)})
                         </span>
                       )}
                       {lead.paymentStatus === 'parcial' && (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800">
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded bg-amber-100 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300 border border-amber-200/50 dark:border-amber-800/50">
                           <AlertCircle className="w-3 h-3 text-amber-600" />
                           Anticipo: {formatCurrency(lead.paidAmount)}
                         </span>
                       )}
                       {lead.paymentStatus === 'pendiente' && (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded bg-rose-50 text-rose-700 border border-rose-200">
+                        <span className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800">
                           Pendiente
                         </span>
                       )}
                       {lead.paymentStatus === 'no_aplica' && (
-                        <span className="text-[11px] text-slate-400">N/A</span>
+                        <span className="text-[11px] text-slate-400 dark:text-slate-500">N/A</span>
                       )}
                     </td>
 
                     {/* Payment Method */}
-                    <td className="py-3 px-4 text-slate-600 text-[11px]">
+                    <td className="py-3 px-4 text-slate-600 dark:text-slate-300 text-[11px]">
                       {lead.paymentMethod || '—'}
                     </td>
 
                     {/* Registration Date on Platform */}
                     <td className="py-3 px-4">
-                      <div className="flex items-center gap-1 text-slate-800 font-semibold text-xs">
-                        <Calendar className="w-3 h-3 text-teal-600 shrink-0" />
+                      <div className="flex items-center gap-1 text-slate-800 dark:text-slate-200 font-semibold text-xs">
+                        <Calendar className="w-3 h-3 text-teal-600 dark:text-teal-400 shrink-0" />
                         <span>{regInfo.formattedCompact}</span>
                       </div>
-                      <div className="text-[10px] text-slate-400 font-normal">
+                      <div className="text-[10px] text-slate-400 dark:text-slate-500 font-normal">
                         {regInfo.relative ? regInfo.relative : regInfo.formattedFull}
                       </div>
                     </td>
@@ -731,7 +847,7 @@ export const LeadsTableView: React.FC<LeadsTableViewProps> = ({
                     {/* Next Follow Up */}
                     <td className="py-3 px-4">
                       {lead.nextFollowUpDate ? (
-                        <div className="flex items-center gap-1 text-slate-700">
+                        <div className="flex items-center gap-1 text-slate-700 dark:text-slate-300">
                           <Calendar className="w-3 h-3 text-slate-400" />
                           <span className="font-semibold">{lead.nextFollowUpDate}</span>
                           {lead.nextFollowUpTime && (
@@ -739,7 +855,7 @@ export const LeadsTableView: React.FC<LeadsTableViewProps> = ({
                           )}
                         </div>
                       ) : (
-                        <span className="text-slate-400 text-[11px]">Sin agendar</span>
+                        <span className="text-slate-400 dark:text-slate-500 text-[11px]">Sin agendar</span>
                       )}
                     </td>
 
@@ -749,27 +865,34 @@ export const LeadsTableView: React.FC<LeadsTableViewProps> = ({
                         <button
                           onClick={() => onOpenWhatsApp(lead)}
                           title="Enviar mensaje WhatsApp"
-                          className="p-1.5 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 transition-colors cursor-pointer"
+                          className="p-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 border border-emerald-200 dark:border-emerald-800 transition-colors cursor-pointer"
                         >
                           <MessageCircle className="w-3.5 h-3.5 fill-emerald-600" />
                         </button>
 
+                        {onOpenReceipt && (
+                          <button
+                            onClick={() => onOpenReceipt(lead)}
+                            title="Generar Recibo Oficial de Pago"
+                            className="p-1.5 rounded-lg bg-teal-50 dark:bg-teal-950/40 text-teal-700 dark:text-teal-300 hover:bg-teal-100 dark:hover:bg-teal-900/50 border border-teal-200 dark:border-teal-800 transition-colors cursor-pointer"
+                          >
+                            <FileText className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />
+                          </button>
+                        )}
+
                         <button
                           onClick={() => onOpenEdit(lead)}
                           title="Editar ficha del médico"
-                          className="p-1.5 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors cursor-pointer"
+                          className="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-750 transition-colors cursor-pointer border border-transparent dark:border-slate-700"
                         >
                           <Edit3 className="w-3.5 h-3.5" />
                         </button>
 
                         <button
-                          onClick={() => {
-                            if (window.confirm(`¿Deseas eliminar al ${lead.doctorName}?`)) {
-                              onDeleteLead(lead.id);
-                            }
-                          }}
-                          title="Eliminar prospecto"
-                          className="p-1.5 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100 transition-colors cursor-pointer"
+                          type="button"
+                          onClick={() => setLeadToDelete(lead)}
+                          title="Eliminar especialista"
+                          className="p-1.5 rounded-lg bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/50 border border-rose-200/60 dark:border-rose-800 transition-colors cursor-pointer"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
@@ -782,6 +905,62 @@ export const LeadsTableView: React.FC<LeadsTableViewProps> = ({
           </table>
         </div>
       </div>
+
+      {/* Floating Bulk Action Bar */}
+      {selectedLeadIds.length > 0 && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 bg-slate-900 text-white px-4 sm:px-6 py-3 rounded-2xl shadow-2xl border border-slate-700 flex items-center gap-3 sm:gap-6 animate-in slide-in-from-bottom-5 duration-200">
+          <div className="flex items-center gap-2 text-xs font-bold">
+            <span className="w-6 h-6 rounded-full bg-teal-500 text-slate-950 flex items-center justify-center text-xs font-black">
+              {selectedLeadIds.length}
+            </span>
+            <span className="hidden sm:inline">especialistas seleccionados</span>
+            <span className="sm:hidden">elegidos</span>
+          </div>
+
+          <div className="h-4 w-px bg-slate-700" />
+
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setSelectedLeadIds([])}
+              className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 hover:text-white font-medium transition-colors cursor-pointer"
+            >
+              Desmarcar
+            </button>
+
+            <button
+              type="button"
+              id="btn-bulk-delete"
+              onClick={() => setIsConfirmingBulkDelete(true)}
+              className="px-4 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              <span>Eliminar Selección ({selectedLeadIds.length})</span>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Single Doctor Delete Confirmation Modal */}
+      <DeleteConfirmationModal
+        isOpen={Boolean(leadToDelete)}
+        onClose={() => setLeadToDelete(null)}
+        onConfirm={() => {
+          if (leadToDelete) {
+            onDeleteLead(leadToDelete.id);
+            setSelectedLeadIds((prev) => prev.filter((id) => id !== leadToDelete.id));
+          }
+        }}
+        lead={leadToDelete}
+      />
+
+      {/* Bulk Delete Confirmation Modal */}
+      <DeleteConfirmationModal
+        isOpen={isConfirmingBulkDelete}
+        onClose={() => setIsConfirmingBulkDelete(false)}
+        onConfirm={handleBulkDeleteConfirm}
+        selectedCount={selectedLeadIds.length}
+      />
 
     </div>
   );

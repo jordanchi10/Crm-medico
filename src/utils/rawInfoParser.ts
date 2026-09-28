@@ -1,5 +1,5 @@
 import { MedicalSpecialty, MedicalLead, StageId } from '../types';
-import { SPECIALTIES_LIST } from '../data/specialties';
+import { getAllSpecialties } from '../data/specialties';
 import { ECUADOR_CITIES, ECUADOR_SECTORS, formatEcuadorPhoneForWhatsApp } from '../data/ecuadorData';
 
 export interface ParsedDoctorResult {
@@ -73,12 +73,31 @@ export function matchSpecialty(text: string): MedicalSpecialty | undefined {
     { keywords: ['cardio', 'cardiolog', 'corazon'], specialty: 'Cardiología' },
     { keywords: ['derma', 'dermatolog', 'piel', 'cutane'], specialty: 'Dermatología' },
     { keywords: ['pediatr', 'ninos', 'infantil'], specialty: 'Pediatría' },
-    { keywords: ['ginec', 'obstetr', 'embarazo', 'parto'], specialty: 'Ginecología y Obstetricia' },
+    { keywords: ['ginec', 'obstetr', 'embarazo', 'parto', 'materno'], specialty: 'Ginecología y Obstetricia' },
     { keywords: ['odont', 'dentist', 'diente', 'ortodonc', 'sonrisa', 'implante dental'], specialty: 'Odontología / Ortodoncia' },
     { keywords: ['traumat', 'ortoped', 'hueso', 'articulac', 'columna'], specialty: 'Traumatología y Ortopedia' },
     { keywords: ['oftalm', 'oculist', 'ojo', 'vision', 'retina'], specialty: 'Oftalmología' },
     { keywords: ['cirugia plastic', 'estetic', 'rinoplast', 'lipo', 'cirujano plastic'], specialty: 'Cirugía Plástica y Estética' },
-    { keywords: ['neuro', 'neurolog', 'cerebro'], specialty: 'Neurología' },
+    { keywords: ['neurolog', 'cerebro'], specialty: 'Neurología' },
+    { keywords: ['gastro', 'endoscop', 'colon', 'digestivo', 'estomago', 'higado'], specialty: 'Gastroenterología' },
+    { keywords: ['endocrino', 'diabetes', 'tiroides', 'metabolismo'], specialty: 'Endocrinología' },
+    { keywords: ['neumol', 'pulmon', 'respirat', 'asma'], specialty: 'Neumología' },
+    { keywords: ['reumat', 'artritis', 'lupus'], specialty: 'Reumatología' },
+    { keywords: ['nutric', 'diet', 'peso', 'alimentac'], specialty: 'Nutrición y Dietética' },
+    { keywords: ['psicol', 'terapia psic', 'salud emocional'], specialty: 'Psicología Clínica' },
+    { keywords: ['nefrol', 'rinon', 'dialisis'], specialty: 'Nefrología' },
+    { keywords: ['cirugia general', 'cirujano general'], specialty: 'Cirugía General' },
+    { keywords: ['fisioterap', 'rehabilitac', 'kinesiol'], specialty: 'Fisioterapia y Rehabilitación' },
+    { keywords: ['alerg', 'inmunol'], specialty: 'Alergología e Inmunología' },
+    { keywords: ['geriatr', 'adulto mayor'], specialty: 'Geriatría' },
+    { keywords: ['infectol', 'infecc'], specialty: 'Infectología' },
+    { keywords: ['vascular', 'varices', 'flebol'], specialty: 'Cirugía Vascular' },
+    { keywords: ['hematol', 'sangre', 'anemia'], specialty: 'Hematología' },
+    { keywords: ['estetica', 'botox', 'armonizacion'], specialty: 'Medicina Estética' },
+    { keywords: ['neurocirug'], specialty: 'Neurocirugía' },
+    { keywords: ['radiolog', 'imagenolog', 'ecograf', 'rayos x', 'tomograf'], specialty: 'Radiología e Imagenología' },
+    { keywords: ['anestesi'], specialty: 'Anestesiología' },
+    { keywords: ['general', 'familiar', 'cabecera'], specialty: 'Medicina General / Familiar' },
     { keywords: ['interna', 'internista', 'clinico'], specialty: 'Medicina Interna' },
     { keywords: ['urolog', 'prostata', 'urinari'], specialty: 'Urología' },
     { keywords: ['otorrino', 'garganta', 'oido', 'nariz'], specialty: 'Otorrinolaringología' },
@@ -92,8 +111,9 @@ export function matchSpecialty(text: string): MedicalSpecialty | undefined {
     }
   }
 
-  // Exact matching against list
-  for (const spec of SPECIALTIES_LIST) {
+  // Exact matching against dynamic specialty list
+  const allSpecs = getAllSpecialties();
+  for (const spec of allSpecs) {
     if (norm.includes(normalizeStr(spec.name))) {
       return spec.name;
     }

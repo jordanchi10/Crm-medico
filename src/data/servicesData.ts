@@ -3,18 +3,18 @@ import { MedicalService } from '../types';
 export const BASE_SERVICES: MedicalService[] = [
   {
     id: 'srv-base-1ano',
-    name: 'Perfil Médico 1 año',
+    name: 'Consultorio Digital (1 año - $99)',
     price: 99,
     durationYears: 1,
-    description: 'Perfil médico profesional por 12 meses: posicionamiento SEO local, ficha de contacto, botón WhatsApp directo y presencia médica verificada.',
+    description: 'Landing page médica por 12 meses: conectada a Google y búsquedas con IA (Gemini/ChatGPT), automatización de citas, fotos de casos, blog, redes (TikTok/IG) y código SENESCYT.',
     isBase: true
   },
   {
     id: 'srv-base-2anos',
-    name: 'Perfil Médico 2 años',
+    name: 'Consultorio Digital (2 años - $150)',
     price: 150,
     durationYears: 2,
-    description: 'Plan preferencial bianual por 24 meses (ahorro del 25%): posicionamiento prioritario en buscadores médicos, soporte continuo y actualización de consultorios.',
+    description: 'Plan preferencial bianual por 24 meses (ahorro del 25%): landing page médica completa, Google + IA, sistema de citas online con pre-consulta, blog, redes y acreditación médica.',
     isBase: true
   }
 ];
@@ -34,17 +34,17 @@ export function loadServices(): MedicalService[] {
       return BASE_SERVICES;
     }
 
-    // Ensure base services are always present
-    const baseIds = new Set(BASE_SERVICES.map(b => b.id));
-    const merged = [...parsed];
-    for (const baseSrv of BASE_SERVICES) {
-      if (!merged.some(s => s.id === baseSrv.id || s.name.toLowerCase() === baseSrv.name.toLowerCase())) {
-        merged.unshift(baseSrv);
-      }
-    }
+    // Filter out obsolete legacy services with old prices (e.g. 2100, 2800, 1200, > 300)
+    const validCustom = parsed.filter(
+      (s) => s && !s.isBase && typeof s.price === 'number' && s.price > 0 && s.price <= 300 && s.price !== 2100 && s.price !== 2800 && s.price !== 1200
+    );
+
+    const merged: MedicalService[] = [...BASE_SERVICES, ...validCustom];
+    saveServices(merged);
     return merged;
   } catch (e) {
     console.error('Error loading services from localStorage', e);
+    saveServices(BASE_SERVICES);
     return BASE_SERVICES;
   }
 }

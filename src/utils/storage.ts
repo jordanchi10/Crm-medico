@@ -3,9 +3,10 @@ import { INITIAL_LEADS } from '../data/initialData';
 import { DEFAULT_WHATSAPP_TEMPLATES } from '../data/whatsappTemplates';
 import { SPECIALTIES_LIST } from '../data/specialties';
 import { loadServices, saveServices } from '../data/servicesData';
+import { formatEcuadorPhoneForWhatsApp } from '../data/ecuadorData';
 
 const LEADS_STORAGE_KEY = 'medcrm_leads_v1';
-const TEMPLATES_STORAGE_KEY = 'medcrm_templates_v1';
+const TEMPLATES_STORAGE_KEY = 'medcrm_templates_v4';
 
 export function loadLeads(): MedicalLead[] {
   try {
@@ -18,24 +19,95 @@ export function loadLeads(): MedicalLead[] {
     let modified = false;
     const migrated = parsed.map((lead, idx) => {
       let updatedLead = { ...lead };
+
+      // 1. Sanitize Phone Numbers to Ecuador +593 format
+      if (updatedLead.phone) {
+        let phoneStr = String(updatedLead.phone).trim();
+        // If it has old Mexican prefix +52, strip or replace
+        if (phoneStr.startsWith('+52') || phoneStr.startsWith('52')) {
+          phoneStr = phoneStr.replace(/^\+?52\s?1?/, '');
+        }
+        const { displayPhone } = formatEcuadorPhoneForWhatsApp(phoneStr);
+        if (displayPhone && displayPhone !== updatedLead.phone && displayPhone.startsWith('+593')) {
+          updatedLead.phone = displayPhone;
+          modified = true;
+        } else if (!updatedLead.phone.startsWith('+593')) {
+          const rawDigits = updatedLead.phone.replace(/\D/g, '');
+          const lastNine = rawDigits.slice(-9);
+          const standardPhone = `+593 9${lastNine.slice(-8)}`;
+          updatedLead.phone = standardPhone;
+          modified = true;
+        }
+      } else {
+        updatedLead.phone = '+593 99 123 4567';
+        modified = true;
+      }
+
+      // 2. Sanitize and Normalize Pricing Plans ($99 and $150 only)
+      // Check if lead had old MXN/legacy prices (e.g. 2100, 2800, 1200, 2400 or > 150)
+      const currentEstimated = Number(updatedLead.estimatedValue) || 99;
+      const isTwoYearPlan = 
+        currentEstimated === 150 || 
+        currentEstimated >= 2000 || 
+        updatedLead.serviceId === 'srv-base-2anos' || 
+        (updatedLead.serviceName && (updatedLead.serviceName.includes('2 año') || updatedLead.serviceName.includes('150')));
+
+      if (isTwoYearPlan) {
+        if (updatedLead.estimatedValue !== 150) {
+          updatedLead.estimatedValue = 150;
+          modified = true;
+        }
+        if (updatedLead.serviceId !== 'srv-base-2anos') {
+          updatedLead.serviceId = 'srv-base-2anos';
+          modified = true;
+        }
+        if (updatedLead.serviceName !== 'Perfil Médico 2 años ($150)' && updatedLead.serviceName !== 'Consultorio Digital (2 años - $150)') {
+          updatedLead.serviceName = 'Perfil Médico 2 años ($150)';
+          modified = true;
+        }
+        if (updatedLead.paymentStatus === 'pagado' && updatedLead.paidAmount !== 150) {
+          updatedLead.paidAmount = 150;
+          modified = true;
+        } else if (updatedLead.paidAmount > 150) {
+          updatedLead.paidAmount = 150;
+          modified = true;
+        }
+      } else {
+        // 1 Year Plan ($99)
+        if (updatedLead.estimatedValue !== 99 && updatedLead.estimatedValue !== 150) {
+          updatedLead.estimatedValue = 99;
+          modified = true;
+        }
+        if (!updatedLead.serviceId || updatedLead.serviceId !== 'srv-base-1ano') {
+          updatedLead.serviceId = 'srv-base-1ano';
+          modified = true;
+        }
+        if (!updatedLead.serviceName || updatedLead.serviceName.includes('2.100') || updatedLead.serviceName.includes('1.200') || updatedLead.serviceName.includes('2100') || updatedLead.serviceName.includes('1200')) {
+          updatedLead.serviceName = 'Perfil Médico 1 año ($99)';
+          modified = true;
+        }
+        if (updatedLead.paymentStatus === 'pagado' && updatedLead.paidAmount !== 99) {
+          updatedLead.paidAmount = 99;
+          modified = true;
+        } else if (updatedLead.paidAmount > 99) {
+          updatedLead.paidAmount = 99;
+          modified = true;
+        }
+      }
+
+      // 3. Location / Sector Sanitize for Ecuador
       if (!updatedLead.sector) {
         const match = INITIAL_LEADS.find(l => l.id === lead.id);
         const fallbackSectors = ['Centro', 'Jocay', 'La Pradera', 'Los Esteros', 'Tarqui', 'Barbasquillo'];
         updatedLead.sector = match?.sector || fallbackSectors[idx % fallbackSectors.length];
         modified = true;
       }
-      if (!updatedLead.serviceName) {
-        const match = INITIAL_LEADS.find(l => l.id === lead.id);
-        if (match?.serviceName) {
-          updatedLead.serviceName = match.serviceName;
-          updatedLead.serviceId = match.serviceId;
-        } else {
-          const isTwoYears = updatedLead.estimatedValue >= 150;
-          updatedLead.serviceName = isTwoYears ? 'Perfil Médico 2 años ($150)' : 'Perfil Médico 1 año ($99)';
-          updatedLead.serviceId = isTwoYears ? 'srv-base-2anos' : 'srv-base-1ano';
-        }
+      if (!updatedLead.city || ['CDMX', 'Guadalajara', 'Monterrey', 'Puebla', 'Querétaro'].includes(updatedLead.city)) {
+        updatedLead.city = 'Manta';
         modified = true;
       }
+
+      // 4. Priority
       if (!updatedLead.priority) {
         if (updatedLead.tags?.some(t => t.toLowerCase().includes('alta') || t.toLowerCase().includes('urgente'))) {
           updatedLead.priority = 'alta';
@@ -50,12 +122,26 @@ export function loadLeads(): MedicalLead[] {
         }
         modified = true;
       }
+
+      // 5. Order
       if (updatedLead.order === undefined) {
         updatedLead.order = idx;
         modified = true;
       }
+
+      // 6. Sanitize Notes & History from legacy strings
+      if (updatedLead.notes && (updatedLead.notes.includes('+52') || updatedLead.notes.includes('2100') || updatedLead.notes.includes('2800') || updatedLead.notes.includes('1200'))) {
+        updatedLead.notes = updatedLead.notes
+          .replace(/\+52/g, '+593')
+          .replace(/\$2,?100|\$2\.100/g, '$150')
+          .replace(/\$2,?800|\$2\.800/g, '$150')
+          .replace(/\$1,?200|\$1\.200/g, '$99');
+        modified = true;
+      }
+
       return updatedLead;
     });
+
     if (modified) {
       saveLeads(migrated);
     }
@@ -87,8 +173,6 @@ export function loadTemplates(): WhatsAppTemplate[] {
       return DEFAULT_WHATSAPP_TEMPLATES;
     }
     const parsed: WhatsAppTemplate[] = JSON.parse(raw);
-    // Garantizar que si las plantillas guardadas no tenían attachments o están vacías,
-    // se complementen con las secuencias multimedia predeterminadas
     const enriched = parsed.map((t) => {
       const defaultTpl = DEFAULT_WHATSAPP_TEMPLATES.find((d) => d.id === t.id);
       return {
@@ -118,13 +202,10 @@ export function resetTemplatesToDefault(): WhatsAppTemplate[] {
   return DEFAULT_WHATSAPP_TEMPLATES;
 }
 
-// Format currency
+// Format currency standard USD for Ecuador ($99 USD / $150 USD)
 export function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat('es-MX', {
-    style: 'currency',
-    currency: 'USD',
-    maximumFractionDigits: 0
-  }).format(amount);
+  const safeNum = Math.round(Number(amount) || 0);
+  return `$${safeNum} USD`;
 }
 
 // Compute specialty conversion analytics
@@ -259,6 +340,7 @@ export interface DailySnapshot {
   timestamp: string; // ISO string
   leadsCount: number;
   totalRevenue: number;
+  triggerType?: 'manual' | 'interval' | 'daily_scheduled' | 'initial';
   data: BackupData;
 }
 
@@ -267,7 +349,12 @@ export interface PlatformConfig {
   currency: string;
   defaultPhonePrefix: string;
   dailyAutoBackupEnabled: boolean;
+  backupFrequency: 'interval' | 'daily_time';
+  backupIntervalHours: number; // e.g. 1, 2, 4, 6, 12, 24
+  backupScheduledTime: string; // e.g. "18:00"
   lastDailyBackupDate: string;
+  lastBackupTimestamp: string;
+  maxStoredSnapshots?: number;
 }
 
 export interface BackupData {
@@ -289,7 +376,12 @@ export const DEFAULT_PLATFORM_CONFIG: PlatformConfig = {
   currency: 'USD',
   defaultPhonePrefix: '+593',
   dailyAutoBackupEnabled: true,
-  lastDailyBackupDate: ''
+  backupFrequency: 'interval',
+  backupIntervalHours: 4, // Every 4 hours default
+  backupScheduledTime: '18:00', // 6:00 PM
+  lastDailyBackupDate: '',
+  lastBackupTimestamp: '',
+  maxStoredSnapshots: 30
 };
 
 export function loadPlatformConfig(): PlatformConfig {
@@ -321,43 +413,91 @@ export function getDailySnapshots(): DailySnapshot[] {
   }
 }
 
-// Save a daily snapshot and keep up to the last 30 daily backups
-export function saveDailySnapshot(snapshot: DailySnapshot): void {
+// Save a daily snapshot and keep up to max stored backups
+export function saveDailySnapshot(snapshot: DailySnapshot, maxKeep: number = 30): void {
   try {
-    const existing = getDailySnapshots().filter((s) => s.date !== snapshot.date);
-    const updated = [snapshot, ...existing].slice(0, 30);
+    const existing = getDailySnapshots().filter((s) => s.timestamp !== snapshot.timestamp && s.date !== snapshot.date);
+    const updated = [snapshot, ...existing].slice(0, maxKeep);
     localStorage.setItem(DAILY_SNAPSHOTS_KEY, JSON.stringify(updated));
   } catch (e) {
     console.error('Error saving daily snapshot', e);
   }
 }
 
-// Check and perform daily automatic backup (or manual save with force = true)
+// Check if a scheduled auto backup is due based on config
+export function shouldPerformScheduledBackup(config: PlatformConfig): { shouldRun: boolean; reason: string } {
+  if (!config.dailyAutoBackupEnabled) {
+    return { shouldRun: false, reason: 'Respaldos automáticos desactivados' };
+  }
+
+  const now = new Date();
+  const todayStr = now.toISOString().split('T')[0];
+
+  // If never backed up before
+  if (!config.lastBackupTimestamp) {
+    return { shouldRun: true, reason: 'Primer respaldo del sistema' };
+  }
+
+  const lastTime = new Date(config.lastBackupTimestamp).getTime();
+  const currentTime = now.getTime();
+  const elapsedHours = (currentTime - lastTime) / (1000 * 60 * 60);
+
+  if (config.backupFrequency === 'interval') {
+    const targetInterval = config.backupIntervalHours || 4;
+    if (elapsedHours >= targetInterval) {
+      return { shouldRun: true, reason: `Intervalo de ${targetInterval}h cumplido (${Math.round(elapsedHours * 10) / 10}h transcurridas)` };
+    }
+  } else if (config.backupFrequency === 'daily_time') {
+    // Scheduled time comparison (e.g. 18:00)
+    const [targetHour, targetMinute] = (config.backupScheduledTime || '18:00').split(':').map(Number);
+    const currentHour = now.getHours();
+    const currentMinute = now.getMinutes();
+
+    // Has it run today?
+    if (config.lastDailyBackupDate !== todayStr) {
+      if (currentHour > targetHour || (currentHour === targetHour && currentMinute >= targetMinute)) {
+        return { shouldRun: true, reason: `Hora programada alcanzada (${config.backupScheduledTime})` };
+      }
+    }
+  }
+
+  return { shouldRun: false, reason: 'En espera del próximo horario programado' };
+}
+
+// Check and perform automatic backup (or manual save with force = true)
 export function performDailyAutoBackup(
   leads: MedicalLead[], 
   templates: WhatsAppTemplate[],
-  force: boolean = false
-): { performed: boolean; date: string } {
-  const today = new Date().toISOString().split('T')[0];
+  force: boolean = false,
+  triggerType: 'manual' | 'interval' | 'daily_scheduled' | 'initial' = 'interval'
+): { performed: boolean; date: string; message: string } {
+  const now = new Date();
+  const today = now.toISOString().split('T')[0];
+  const nowIso = now.toISOString();
   const config = loadPlatformConfig();
 
-  // If already backed up today and not forced, return false
-  if (!force && config.lastDailyBackupDate === today) {
-    return { performed: false, date: today };
+  if (!force) {
+    const check = shouldPerformScheduledBackup(config);
+    if (!check.shouldRun) {
+      return { performed: false, date: today, message: check.reason };
+    }
   }
 
   const wonLeads = leads.filter((l) => l.stage === 'ganado');
   const totalRevenue = wonLeads.reduce((acc, l) => acc + (l.paidAmount > 0 ? l.paidAmount : l.estimatedValue), 0);
 
+  const updatedConfig: PlatformConfig = {
+    ...config,
+    lastDailyBackupDate: today,
+    lastBackupTimestamp: nowIso
+  };
+
   const backupData: BackupData = {
     version: '2.0-ecuador',
-    exportDate: new Date().toISOString(),
+    exportDate: nowIso,
     app: 'MedCRM Ecuador - Especialistas Médicos',
     country: 'Ecuador (+593)',
-    config: {
-      ...config,
-      lastDailyBackupDate: today
-    },
+    config: updatedConfig,
     leads,
     templates,
     services: loadServices()
@@ -365,19 +505,21 @@ export function performDailyAutoBackup(
 
   const snapshot: DailySnapshot = {
     date: today,
-    timestamp: new Date().toISOString(),
+    timestamp: nowIso,
     leadsCount: leads.length,
     totalRevenue,
+    triggerType: force ? 'manual' : triggerType,
     data: backupData
   };
 
-  saveDailySnapshot(snapshot);
-  savePlatformConfig({
-    ...config,
-    lastDailyBackupDate: today
-  });
+  saveDailySnapshot(snapshot, config.maxStoredSnapshots || 30);
+  savePlatformConfig(updatedConfig);
 
-  return { performed: true, date: today };
+  return { 
+    performed: true, 
+    date: today, 
+    message: force ? 'Respaldo manual completado' : `Respaldo automático programado completado (${now.toLocaleTimeString()})`
+  };
 }
 
 // Full JSON Backup Export for cPanel / local offline backups

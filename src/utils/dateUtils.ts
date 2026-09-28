@@ -114,3 +114,55 @@ export function getLeadRegistrationInfo(lead: MedicalLead): {
     exactDateTime
   };
 }
+
+/**
+ * Formats a note or log timestamp into a friendly human-readable format
+ * e.g. "Hoy, 14:30", "Ayer, 09:15", "23 Sep, 11:20"
+ */
+export function formatNoteTimestamp(dateStr?: string): { relative: string; full: string; time: string } {
+  if (!dateStr) return { relative: 'Reciente', full: 'Reciente', time: '' };
+
+  try {
+    const today = new Date().toISOString().split('T')[0];
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayStr = yesterday.toISOString().split('T')[0];
+
+    const [datePart, timePart] = dateStr.split(/[ T]/);
+    const time = timePart ? timePart.slice(0, 5) : '';
+
+    if (datePart === today) {
+      return {
+        relative: 'Hoy',
+        time,
+        full: time ? `Hoy a las ${time}` : 'Hoy'
+      };
+    }
+
+    if (datePart === yesterdayStr) {
+      return {
+        relative: 'Ayer',
+        time,
+        full: time ? `Ayer a las ${time}` : 'Ayer'
+      };
+    }
+
+    const parts = datePart.split('-');
+    if (parts.length >= 3) {
+      const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+      const monthIdx = parseInt(parts[1], 10) - 1;
+      const day = parseInt(parts[2], 10);
+      const month = months[monthIdx] || parts[1];
+      const rel = `${day} ${month}`;
+      return {
+        relative: rel,
+        time,
+        full: time ? `${rel}, ${time}` : rel
+      };
+    }
+
+    return { relative: dateStr, full: dateStr, time };
+  } catch {
+    return { relative: dateStr, full: dateStr, time: '' };
+  }
+}

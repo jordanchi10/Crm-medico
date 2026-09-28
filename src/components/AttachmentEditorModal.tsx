@@ -172,10 +172,10 @@ export const AttachmentEditorModal: React.FC<AttachmentEditorModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-      <div className="bg-white rounded-2xl max-w-xl w-full shadow-2xl border border-slate-200 overflow-hidden flex flex-col my-auto animate-in zoom-in-95 duration-150">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-xl w-full shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col my-auto animate-in zoom-in-95 duration-150">
         
         {/* Header */}
-        <div className="bg-slate-900 text-white px-5 py-3.5 flex items-center justify-between">
+        <div className="bg-slate-900 dark:bg-slate-950 text-white px-5 py-3.5 flex items-center justify-between border-b border-slate-800">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-teal-500/20 text-teal-400 flex items-center justify-center font-bold text-xs border border-teal-500/30">
               {type === 'image' ? 'IMG' : type === 'pdf' ? 'PDF' : 'MP3'}
@@ -202,7 +202,7 @@ export const AttachmentEditorModal: React.FC<AttachmentEditorModalProps> = ({
           
           {/* Tipo de archivo selector */}
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">
+            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 uppercase tracking-wider">
               1. Selecciona el Tipo de Archivo Multimedia
             </label>
             <div className="grid grid-cols-3 gap-2">
@@ -211,13 +211,13 @@ export const AttachmentEditorModal: React.FC<AttachmentEditorModalProps> = ({
                 onClick={() => setType('image')}
                 className={`flex flex-col items-center justify-center p-2.5 rounded-xl border text-center transition-all cursor-pointer ${
                   type === 'image'
-                    ? 'border-blue-500 bg-blue-50 text-blue-900 font-bold shadow-xs'
-                    : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+                    ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/50 text-blue-900 dark:text-blue-200 font-bold shadow-xs'
+                    : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-750'
                 }`}
               >
-                <ImageIcon className={`w-5 h-5 mb-1 ${type === 'image' ? 'text-blue-600' : 'text-slate-400'}`} />
+                <ImageIcon className={`w-5 h-5 mb-1 ${type === 'image' ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400'}`} />
                 <span className="text-xs">Imagen</span>
-                <span className="text-[10px] text-slate-400">JPG, PNG, WebP</span>
+                <span className="text-[10px] text-slate-400 dark:text-slate-500">JPG, PNG, WebP</span>
               </button>
 
               <button
@@ -225,13 +225,13 @@ export const AttachmentEditorModal: React.FC<AttachmentEditorModalProps> = ({
                 onClick={() => setType('pdf')}
                 className={`flex flex-col items-center justify-center p-2.5 rounded-xl border text-center transition-all cursor-pointer ${
                   type === 'pdf'
-                    ? 'border-rose-500 bg-rose-50 text-rose-900 font-bold shadow-xs'
-                    : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+                    ? 'border-rose-500 bg-rose-50 dark:bg-rose-950/50 text-rose-900 dark:text-rose-200 font-bold shadow-xs'
+                    : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-750'
                 }`}
               >
-                <FileText className={`w-5 h-5 mb-1 ${type === 'pdf' ? 'text-rose-600' : 'text-slate-400'}`} />
+                <FileText className={`w-5 h-5 mb-1 ${type === 'pdf' ? 'text-rose-600 dark:text-rose-400' : 'text-slate-400'}`} />
                 <span className="text-xs">Documento PDF</span>
-                <span className="text-[10px] text-slate-400">Catálogo, Cotización</span>
+                <span className="text-[10px] text-slate-400 dark:text-slate-500">Catálogo, Cotización</span>
               </button>
 
               <button
@@ -239,49 +239,49 @@ export const AttachmentEditorModal: React.FC<AttachmentEditorModalProps> = ({
                 onClick={() => setType('audio')}
                 className={`flex flex-col items-center justify-center p-2.5 rounded-xl border text-center transition-all cursor-pointer ${
                   type === 'audio'
-                    ? 'border-purple-500 bg-purple-50 text-purple-900 font-bold shadow-xs'
-                    : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+                    ? 'border-purple-500 bg-purple-50 dark:bg-purple-950/50 text-purple-900 dark:text-purple-200 font-bold shadow-xs'
+                    : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-750'
                 }`}
               >
-                <Volume2 className={`w-5 h-5 mb-1 ${type === 'audio' ? 'text-purple-600' : 'text-slate-400'}`} />
+                <Volume2 className={`w-5 h-5 mb-1 ${type === 'audio' ? 'text-purple-600 dark:text-purple-400' : 'text-slate-400'}`} />
                 <span className="text-xs">Audio MP3</span>
-                <span className="text-[10px] text-slate-400">Nota de voz WhatsApp</span>
+                <span className="text-[10px] text-slate-400 dark:text-slate-500">Nota de voz WhatsApp</span>
               </button>
             </div>
           </div>
 
           {/* Plantillas y Presets Rápidos */}
-          <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-200">
-            <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-700 mb-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-teal-600" />
+          <div className="bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700">
+            <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />
               <span>Plantillas Rápidas Listas para Usar:</span>
             </div>
             <div className="flex flex-wrap gap-1.5">
               <button
                 type="button"
                 onClick={() => handleApplyPreset('infographic')}
-                className="px-2.5 py-1 rounded-lg bg-white border border-slate-200 hover:border-teal-400 text-slate-700 hover:text-teal-800 text-[11px] font-medium transition-colors cursor-pointer"
+                className="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-teal-400 text-slate-700 dark:text-slate-300 hover:text-teal-800 dark:hover:text-teal-300 text-[11px] font-medium transition-colors cursor-pointer"
               >
                 📊 Infografía Perfil Médico
               </button>
               <button
                 type="button"
                 onClick={() => handleApplyPreset('pdf')}
-                className="px-2.5 py-1 rounded-lg bg-white border border-slate-200 hover:border-rose-400 text-slate-700 hover:text-rose-800 text-[11px] font-medium transition-colors cursor-pointer"
+                className="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-rose-400 text-slate-700 dark:text-slate-300 hover:text-rose-800 dark:hover:text-rose-300 text-[11px] font-medium transition-colors cursor-pointer"
               >
                 📑 Propuesta PDF 2026
               </button>
               <button
                 type="button"
                 onClick={() => handleApplyPreset('audio')}
-                className="px-2.5 py-1 rounded-lg bg-white border border-slate-200 hover:border-purple-400 text-slate-700 hover:text-purple-800 text-[11px] font-medium transition-colors cursor-pointer"
+                className="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-purple-400 text-slate-700 dark:text-slate-300 hover:text-purple-800 dark:hover:text-purple-300 text-[11px] font-medium transition-colors cursor-pointer"
               >
                 🎙️ Nota de Voz MP3
               </button>
               <button
                 type="button"
                 onClick={() => handleApplyPreset('credential')}
-                className="px-2.5 py-1 rounded-lg bg-white border border-slate-200 hover:border-blue-400 text-slate-700 hover:text-blue-800 text-[11px] font-medium transition-colors cursor-pointer"
+                className="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-blue-400 text-slate-700 dark:text-slate-300 hover:text-blue-800 dark:hover:text-blue-300 text-[11px] font-medium transition-colors cursor-pointer"
               >
                 🏅 Credencial Verificada
               </button>
@@ -290,12 +290,12 @@ export const AttachmentEditorModal: React.FC<AttachmentEditorModalProps> = ({
 
           {/* Subir archivo desde la computadora o arrastrar */}
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">
+            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
               2. Archivo a Enviar (Sube tu archivo o usa uno predeterminado)
             </label>
             <div 
               onClick={() => fileInputRef.current?.click()}
-              className="border-2 border-dashed border-slate-300 hover:border-teal-500 rounded-xl p-4 text-center cursor-pointer transition-colors bg-white hover:bg-teal-50/20"
+              className="border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-teal-500 dark:hover:border-teal-400 rounded-xl p-4 text-center cursor-pointer transition-colors bg-white dark:bg-slate-800 hover:bg-teal-50/20 dark:hover:bg-teal-950/20"
             >
               <input
                 ref={fileInputRef}
@@ -305,17 +305,17 @@ export const AttachmentEditorModal: React.FC<AttachmentEditorModalProps> = ({
                 className="hidden"
               />
               <Upload className="w-6 h-6 text-slate-400 mx-auto mb-1.5" />
-              <div className="font-semibold text-slate-700">
+              <div className="font-semibold text-slate-700 dark:text-slate-300">
                 {fileName ? (
-                  <span className="text-teal-700 font-bold flex items-center justify-center gap-1">
-                    <FileCheck className="w-4 h-4 text-emerald-600" />
+                  <span className="text-teal-700 dark:text-teal-400 font-bold flex items-center justify-center gap-1">
+                    <FileCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                     {fileName} ({fileSize || 'Listo'})
                   </span>
                 ) : (
                   <span>Haz clic aquí para seleccionar tu archivo {type.toUpperCase()}</span>
                 )}
               </div>
-              <p className="text-[11px] text-slate-400 mt-0.5">
+              <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">
                 Archivos locales compatibles con WhatsApp Web y Móvil
               </p>
             </div>
@@ -323,24 +323,24 @@ export const AttachmentEditorModal: React.FC<AttachmentEditorModalProps> = ({
 
           {/* Mini preview si hay URL */}
           {url && (
-            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between gap-3">
+            <div className="p-3 bg-slate-50 dark:bg-slate-800/70 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center justify-between gap-3">
               <div className="flex items-center gap-2 overflow-hidden">
                 {type === 'image' && (
-                  <img src={url} alt="Vista previa" className="w-12 h-10 object-cover rounded border border-slate-300" />
+                  <img src={url} alt="Vista previa" className="w-12 h-10 object-cover rounded border border-slate-300 dark:border-slate-600" />
                 )}
                 {type === 'pdf' && (
-                  <div className="w-10 h-10 rounded bg-rose-100 text-rose-700 font-bold flex items-center justify-center text-xs shrink-0">
+                  <div className="w-10 h-10 rounded bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 font-bold flex items-center justify-center text-xs shrink-0">
                     PDF
                   </div>
                 )}
                 {type === 'audio' && (
-                  <div className="w-10 h-10 rounded bg-purple-100 text-purple-700 font-bold flex items-center justify-center text-xs shrink-0">
+                  <div className="w-10 h-10 rounded bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 font-bold flex items-center justify-center text-xs shrink-0">
                     <Volume2 className="w-5 h-5" />
                   </div>
                 )}
                 <div className="truncate">
-                  <div className="font-bold text-slate-800 truncate">{title || fileName || 'Archivo cargado'}</div>
-                  <div className="text-[10px] text-slate-500">{fileSize || 'Listo para enviar'}</div>
+                  <div className="font-bold text-slate-800 dark:text-slate-200 truncate">{title || fileName || 'Archivo cargado'}</div>
+                  <div className="text-[10px] text-slate-500 dark:text-slate-400">{fileSize || 'Listo para enviar'}</div>
                 </div>
               </div>
 
@@ -348,7 +348,7 @@ export const AttachmentEditorModal: React.FC<AttachmentEditorModalProps> = ({
                 <button
                   type="button"
                   onClick={togglePlayAudio}
-                  className="px-2.5 py-1.5 rounded-lg bg-purple-600 text-white font-bold text-xs flex items-center gap-1 cursor-pointer"
+                  className="px-2.5 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs flex items-center gap-1 cursor-pointer"
                 >
                   {isPlayingAudio ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
                   <span>{isPlayingAudio ? 'Pausar' : 'Probar'}</span>
@@ -360,7 +360,7 @@ export const AttachmentEditorModal: React.FC<AttachmentEditorModalProps> = ({
           {/* Campos descriptivos */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
                 Título del Archivo en la Secuencia
               </label>
               <input
@@ -369,12 +369,12 @@ export const AttachmentEditorModal: React.FC<AttachmentEditorModalProps> = ({
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Ej. Infografía de Resultados Google"
-                className="w-full text-xs px-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                className="w-full text-xs px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-teal-500"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
                 Nombre de Archivo en WhatsApp
               </label>
               <input
@@ -382,7 +382,7 @@ export const AttachmentEditorModal: React.FC<AttachmentEditorModalProps> = ({
                 value={fileName}
                 onChange={(e) => setFileName(e.target.value)}
                 placeholder="catalogo-especialistas.pdf"
-                className="w-full text-xs px-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-teal-500 font-mono"
+                className="w-full text-xs px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-teal-500 font-mono"
               />
             </div>
           </div>
@@ -390,26 +390,26 @@ export const AttachmentEditorModal: React.FC<AttachmentEditorModalProps> = ({
           {/* Pie de foto / Mensaje acompañante */}
           <div>
             <div className="flex items-center justify-between mb-1">
-              <label className="block text-xs font-bold text-slate-700">
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
                 Pie de Foto / Mensaje Acompañante de WhatsApp
               </label>
-              <span className="text-[10px] text-slate-400">Acepta [Doctor], [Especialidad], etc.</span>
+              <span className="text-[10px] text-slate-400 dark:text-slate-500">Acepta [Doctor], [Especialidad], etc.</span>
             </div>
             <textarea
               rows={3}
               value={caption}
               onChange={(e) => setCaption(e.target.value)}
               placeholder="Ej. Estimado [Doctor], le comparto este documento con la cotización de [Monto]..."
-              className="w-full text-xs p-3 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-500 leading-relaxed"
+              className="w-full text-xs p-3 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-teal-500 leading-relaxed"
             />
           </div>
 
           {/* Footer buttons */}
-          <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+          <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
             <button
               type="button"
               onClick={onClose}
-              className="px-3.5 py-2 text-xs font-semibold text-slate-600 hover:text-slate-800 transition-colors cursor-pointer"
+              className="px-3.5 py-2 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition-colors cursor-pointer"
             >
               Cancelar
             </button>

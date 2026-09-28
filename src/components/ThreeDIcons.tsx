@@ -245,3 +245,143 @@ export const ThreeDServicesIcon: React.FC<Icon3DProps> = ({ className = '', size
     </text>
   </svg>
 );
+
+// 3D Isometric "Mi Jornada de Hoy" (Dashboard Cockpit) Icon
+export const ThreeDDashboardIcon: React.FC<Icon3DProps> = ({ className = '', size = 22 }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 32 32"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={`drop-shadow-[0_2px_4px_rgba(245,158,11,0.3)] transition-transform duration-200 group-hover:scale-105 ${className}`}
+  >
+    <defs>
+      <linearGradient id="dash-sun" x1="4" y1="4" x2="28" y2="28" gradientUnits="userSpaceOnUse">
+        <stop stopColor="#F59E0B" />
+        <stop offset="1" stopColor="#B45309" />
+      </linearGradient>
+      <linearGradient id="dash-rocket" x1="8" y1="8" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+        <stop stopColor="#FDE68A" />
+        <stop offset="1" stopColor="#F59E0B" />
+      </linearGradient>
+    </defs>
+    <rect x="4" y="5" width="24" height="22" rx="4.5" fill="url(#dash-sun)" />
+    <rect x="7" y="8" width="8" height="6.5" rx="2" fill="#FFFFFF" fillOpacity="0.9" />
+    <rect x="17" y="8" width="8" height="6.5" rx="2" fill="#FFFFFF" fillOpacity="0.9" />
+    <rect x="7" y="17" width="18" height="7" rx="2" fill="#FFFFFF" fillOpacity="0.95" />
+    <circle cx="10" cy="20.5" r="1.5" fill="#10B981" />
+    <rect x="13.5" y="19.5" width="9" height="2" rx="1" fill="#CBD5E1" />
+  </svg>
+);
+
+// 3D Isometric Calendar Icon
+export const ThreeDCalendarIcon: React.FC<Icon3DProps> = ({ className = '', size = 22 }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 32 32"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={`drop-shadow-[0_2px_4px_rgba(14,165,233,0.3)] transition-transform duration-200 group-hover:scale-105 ${className}`}
+  >
+    <defs>
+      <linearGradient id="cal-body" x1="4" y1="6" x2="28" y2="28" gradientUnits="userSpaceOnUse">
+        <stop stopColor="#38BDF8" />
+        <stop offset="1" stopColor="#0284C7" />
+      </linearGradient>
+      <linearGradient id="cal-header" x1="4" y1="4" x2="28" y2="12" gradientUnits="userSpaceOnUse">
+        <stop stopColor="#EF4444" />
+        <stop offset="1" stopColor="#B91C1C" />
+      </linearGradient>
+    </defs>
+    <rect x="4" y="6" width="24" height="21" rx="4" fill="url(#cal-body)" />
+    <path d="M4 10C4 7.79086 5.79086 6 8 6H24C26.2091 6 28 7.79086 28 10V12H4V10Z" fill="url(#cal-header)" />
+    <rect x="8" y="3" width="3" height="5" rx="1.5" fill="#F8FAFC" />
+    <rect x="21" y="3" width="3" height="5" rx="1.5" fill="#F8FAFC" />
+    {/* Calendar grid dots */}
+    <rect x="8" y="15" width="3" height="3" rx="1" fill="#FFFFFF" fillOpacity="0.9" />
+    <rect x="14.5" y="15" width="3" height="3" rx="1" fill="#FFFFFF" fillOpacity="0.9" />
+    <rect x="21" y="15" width="3" height="3" rx="1" fill="#FFFFFF" fillOpacity="0.9" />
+    <rect x="8" y="20.5" width="3" height="3" rx="1" fill="#FFFFFF" fillOpacity="0.9" />
+    <rect x="14.5" y="20.5" width="3" height="3" rx="1" fill="#FDE047" />
+    <rect x="21" y="20.5" width="3" height="3" rx="1" fill="#FFFFFF" fillOpacity="0.9" />
+  </svg>
+);
+
+// 3D Isometric Cadence / Sequence Icon
+export const ThreeDCadenceIcon: React.FC<Icon3DProps> = ({ className = '', size = 22 }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 32 32"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={`drop-shadow-[0_2px_4px_rgba(139,92,246,0.3)] transition-transform duration-200 group-hover:scale-105 ${className}`}
+  >
+    <defs>
+      <linearGradient id="cad-grad" x1="4" y1="4" x2="28" y2="28" gradientUnits="userSpaceOnUse">
+        <stop stopColor="#A855F7" />
+        <stop offset="1" stopColor="#6B21A8" />
+      </linearGradient>
+    </defs>
+    <rect x="4" y="5" width="24" height="22" rx="4.5" fill="url(#cad-grad)" />
+    {/* Sequence steps steps connected */}
+    <circle cx="10" cy="11" r="2.5" fill="#F8FAFC" />
+    <circle cx="16" cy="16" r="2.5" fill="#F8FAFC" />
+    <circle cx="22" cy="21" r="2.5" fill="#34D399" />
+    <path d="M12 12.5L14 14.5M18 17.5L20 19.5" stroke="#F8FAFC" strokeWidth="2" strokeLinecap="round" />
+  </svg>
+);
+
+// 3D Isometric Renewals / Churn Prevention Icon
+export const ThreeDRenewalsIcon: React.FC<Icon3DProps> = ({ className = '', size = 22 }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 32 32"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={`drop-shadow-[0_2px_4px_rgba(16,185,129,0.3)] transition-transform duration-200 group-hover:scale-105 ${className}`}
+  >
+    <defs>
+      <linearGradient id="ren-grad" x1="4" y1="4" x2="28" y2="28" gradientUnits="userSpaceOnUse">
+        <stop stopColor="#10B981" />
+        <stop offset="1" stopColor="#047857" />
+      </linearGradient>
+    </defs>
+    <rect x="4" y="5" width="24" height="22" rx="4.5" fill="url(#ren-grad)" />
+    {/* Refresh circular arrow */}
+    <path
+      d="M16 10C12.7 10 10 12.7 10 16C10 17.6 10.6 19.1 11.7 20.2L13.1 18.8C12.4 18.1 12 17.1 12 16C12 13.8 13.8 12 16 12C17.3 12 18.5 12.6 19.2 13.6L17.5 15.3H22V10.8L20.6 12.2C19.5 10.8 17.8 10 16 10Z"
+      fill="#FFFFFF"
+    />
+    <path
+      d="M16 22C14.7 22 13.5 21.4 12.8 20.4L14.5 18.7H10V23.2L11.4 21.8C12.5 23.2 14.2 24 16 24C19.3 24 22 21.3 22 18C22 16.4 21.4 14.9 20.3 13.8L18.9 15.2C19.6 15.9 20 16.9 20 18C20 20.2 18.2 22 16 22Z"
+      fill="#A7F3D0"
+    />
+  </svg>
+);
+
+// 3D Isometric Official Receipt Icon
+export const ThreeDReceiptIcon: React.FC<Icon3DProps> = ({ className = '', size = 22 }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 32 32"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={`drop-shadow-[0_2px_4px_rgba(234,88,12,0.3)] transition-transform duration-200 group-hover:scale-105 ${className}`}
+  >
+    <defs>
+      <linearGradient id="rec-body" x1="6" y1="4" x2="26" y2="28" gradientUnits="userSpaceOnUse">
+        <stop stopColor="#F8FAFC" />
+        <stop offset="1" stopColor="#E2E8F0" />
+      </linearGradient>
+    </defs>
+    <rect x="6" y="4" width="20" height="24" rx="3" fill="url(#rec-body)" stroke="#CBD5E1" strokeWidth="1.5" />
+    <path d="M10 9H22M10 13H18M10 17H22M10 21H16" stroke="#475569" strokeWidth="1.75" strokeLinecap="round" />
+    <circle cx="21" cy="21" r="3.5" fill="#10B981" />
+    <path d="M19.5 21L20.5 22L22.5 20" stroke="#FFFFFF" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);

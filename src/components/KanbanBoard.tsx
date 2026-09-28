@@ -16,16 +16,18 @@ import {
 } from 'lucide-react';
 import { MedicalLead, StageId } from '../types';
 import { STAGES } from '../data/stages';
-import { SPECIALTIES_LIST } from '../data/specialties';
+import { getAllSpecialties } from '../data/specialties';
 import { ECUADOR_SECTORS } from '../data/ecuadorData';
 import { formatCurrency } from '../utils/storage';
 import { KanbanCard } from './KanbanCard';
 import { getLeadOverdueInfo } from '../utils/notificationService';
+import { DeleteConfirmationModal } from './DeleteConfirmationModal';
 
 interface KanbanBoardProps {
   leads: MedicalLead[];
   onOpenEdit: (lead: MedicalLead) => void;
   onOpenWhatsApp: (lead: MedicalLead) => void;
+  onDeleteLead?: (leadId: string) => void;
   onStageChange: (leadId: string, newStage: StageId) => void;
   onAddNewLeadInStage: (stage: StageId) => void;
   onOpenServicesModal?: () => void;
@@ -38,6 +40,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   leads,
   onOpenEdit,
   onOpenWhatsApp,
+  onDeleteLead,
   onStageChange,
   onAddNewLeadInStage,
   onOpenServicesModal,
@@ -46,6 +49,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   onOpenNotificationCenter
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [leadToDelete, setLeadToDelete] = useState<MedicalLead | null>(null);
   const [selectedSpecialty, setSelectedSpecialty] = useState<string>('all');
   const [selectedPaymentStatus, setSelectedPaymentStatus] = useState<string>('all');
   const [selectedCity, setSelectedCity] = useState<string>('all');
@@ -182,28 +186,28 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   );
 
   return (
-    <div className="p-3 sm:p-6 max-w-7xl mx-auto space-y-4 pb-20 md:pb-6">
+    <div className="p-3 sm:p-6 w-full space-y-4 pb-20 md:pb-6">
       
       {/* Search Bar, Filter Tray & Sector Segment Bar */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-3 sm:p-4 shadow-2xs space-y-2.5">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 p-3 sm:p-4 shadow-2xs space-y-2.5 transition-colors duration-200">
         
         <div className="flex flex-col sm:flex-row gap-2.5 items-stretch sm:items-center justify-between">
           
           {/* Search Input */}
           <div className="relative flex-1">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-slate-400 dark:text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               id="search-input-kanban"
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Buscar por médico, sector (Jocay, Centro...), clínica o servicio..."
-              className="w-full text-xs pl-9 pr-8 py-2 rounded-xl bg-slate-50 hover:bg-slate-100/80 focus:bg-white border border-slate-200 focus:border-teal-500 focus:outline-none transition-all placeholder:text-slate-400 font-medium"
+              className="w-full text-xs pl-9 pr-8 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/80 hover:bg-slate-100/80 dark:hover:bg-slate-800 focus:bg-white dark:focus:bg-slate-800 text-slate-900 dark:text-slate-100 border border-slate-200 dark:border-slate-700/80 focus:border-teal-500 dark:focus:border-teal-400 focus:outline-none transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500 font-medium"
             />
             {searchTerm && (
               <button
                 onClick={() => setSearchTerm('')}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5 cursor-pointer"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-0.5 cursor-pointer"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -226,11 +230,11 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                 effectiveOnlyOverdue
                   ? 'bg-rose-600 text-white border-rose-600 shadow-xs'
                   : overdueCount > 0
-                  ? 'bg-rose-50 text-rose-800 border-rose-300 hover:bg-rose-100 shadow-2xs'
-                  : 'bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100'
+                  ? 'bg-rose-50 dark:bg-rose-950/40 text-rose-800 dark:text-rose-300 border-rose-300 dark:border-rose-800 hover:bg-rose-100 dark:hover:bg-rose-900/50 shadow-2xs'
+                  : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700/80'
               }`}
             >
-              <Clock className={`w-3.5 h-3.5 ${effectiveOnlyOverdue ? 'text-white' : overdueCount > 0 ? 'text-rose-600 animate-pulse' : 'text-slate-400'}`} />
+              <Clock className={`w-3.5 h-3.5 ${effectiveOnlyOverdue ? 'text-white' : overdueCount > 0 ? 'text-rose-600 dark:text-rose-400 animate-pulse' : 'text-slate-400 dark:text-slate-500'}`} />
               <span className="hidden xs:inline">Sin contacto (+48h)</span>
               <span className="xs:hidden">+48h</span>
               {overdueCount > 0 && (
@@ -248,207 +252,125 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
               onClick={() => setIsFilterTrayOpen(!isFilterTrayOpen)}
               className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
                 activeFiltersCount > 0 || isFilterTrayOpen
-                  ? 'bg-teal-50 text-teal-800 border-teal-300 shadow-2xs'
-                  : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200'
+                  ? 'bg-teal-50 dark:bg-teal-950/50 text-teal-800 dark:text-teal-300 border-teal-300 dark:border-teal-700 shadow-2xs'
+                  : 'bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-750 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700'
               }`}
             >
               <SlidersHorizontal className="w-3.5 h-3.5" />
               <span>Filtros</span>
               {activeFiltersCount > 0 && (
-                <span className="w-4.5 h-4.5 rounded-full bg-teal-600 text-white text-[10px] font-bold flex items-center justify-center">
+                <span className="px-1.5 py-0.2 bg-teal-600 text-white rounded-full text-[10px] font-black">
                   {activeFiltersCount}
                 </span>
               )}
             </button>
-
-            {/* Mobile View Toggle: Stage focus vs Column view */}
-            <div className="md:hidden flex items-center bg-slate-100 p-0.5 rounded-xl border border-slate-200">
-              <button
-                onClick={() => setMobileViewMode('stage')}
-                title="Vista por etapas"
-                className={`p-1.5 rounded-lg text-xs font-semibold cursor-pointer ${
-                  mobileViewMode === 'stage'
-                    ? 'bg-white text-slate-900 shadow-2xs'
-                    : 'text-slate-500'
-                }`}
-              >
-                <Layers className="w-3.5 h-3.5" />
-              </button>
-              <button
-                onClick={() => setMobileViewMode('columns')}
-                title="Vista columnas completas"
-                className={`p-1.5 rounded-lg text-xs font-semibold cursor-pointer ${
-                  mobileViewMode === 'columns'
-                    ? 'bg-white text-slate-900 shadow-2xs'
-                    : 'text-slate-500'
-                }`}
-              >
-                <Columns3 className="w-3.5 h-3.5" />
-              </button>
-            </div>
-
-            {/* Leads Counter Badge (desktop) */}
-            <div className="hidden sm:block text-xs text-slate-500 whitespace-nowrap">
-              <span><strong className="text-slate-800 font-bold">{filteredLeads.length}</strong> de {leads.length} médicos</span>
-            </div>
           </div>
 
         </div>
 
-        {/* Quick Sector Locación Segment Pills (Centro, Jocay, Pradera, Los Esteros...) */}
-        <div className="pt-2 border-t border-slate-100 flex flex-wrap items-center gap-1.5 text-xs">
-          <span className="text-[11px] font-bold text-slate-500 flex items-center gap-1 mr-1">
-            <MapPin className="w-3.5 h-3.5 text-teal-600" />
-            <span>Locación:</span>
-          </span>
-          <button
-            type="button"
-            onClick={() => setSelectedSector('all')}
-            className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-              selectedSector === 'all'
-                ? 'bg-teal-600 text-white shadow-2xs'
-                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-            }`}
-          >
-            Todos
-          </button>
-          {['Centro', 'Jocay', 'La Pradera', 'Los Esteros', 'Tarqui', 'Barbasquillo'].map((sec) => (
-            <button
-              key={sec}
-              type="button"
-              onClick={() => setSelectedSector(selectedSector === sec ? 'all' : sec)}
-              className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1 ${
-                selectedSector === sec
-                  ? 'bg-teal-600 text-white shadow-2xs'
-                  : 'bg-slate-50 text-slate-700 border border-slate-200 hover:bg-slate-100'
-              }`}
-            >
-              <span>{sec}</span>
-            </button>
-          ))}
-
-          {/* Quick Service Filter Pills (1 año $99 y 2 años $150) */}
-          <div className="hidden sm:flex items-center gap-1.5 ml-auto pl-2 border-l border-slate-200">
-            <span className="text-[11px] font-bold text-slate-500 flex items-center gap-1">
-              <Briefcase className="w-3.5 h-3.5 text-teal-600" />
-              <span>Plan:</span>
-            </span>
-            <button
-              type="button"
-              onClick={() => setSelectedService(selectedService === '99' ? 'all' : '99')}
-              className={`px-2 py-0.5 rounded-md text-[11px] font-bold transition-all cursor-pointer ${
-                selectedService === '99'
-                  ? 'bg-teal-700 text-white'
-                  : 'bg-teal-50 text-teal-800 border border-teal-200 hover:bg-teal-100'
-              }`}
-            >
-              1 año ($99)
-            </button>
-            <button
-              type="button"
-              onClick={() => setSelectedService(selectedService === '150' ? 'all' : '150')}
-              className={`px-2 py-0.5 rounded-md text-[11px] font-bold transition-all cursor-pointer ${
-                selectedService === '150'
-                  ? 'bg-teal-700 text-white'
-                  : 'bg-teal-50 text-teal-800 border border-teal-200 hover:bg-teal-100'
-              }`}
-            >
-              2 años ($150)
-            </button>
-          </div>
-        </div>
-
-        {/* Collapsible Filter Tray */}
+        {/* Expandable Filter Tray */}
         {isFilterTrayOpen && (
-          <div className="pt-2.5 border-t border-slate-100 animate-in fade-in duration-100">
-            <div className="grid grid-cols-1 sm:grid-cols-4 gap-2.5">
-              
-              {/* Specialty Filter */}
-              <div>
-                <label className="block text-[11px] font-bold text-slate-600 mb-1">
-                  Especialidad Médica
-                </label>
-                <select
-                  id="select-filter-specialty"
-                  value={selectedSpecialty}
-                  onChange={(e) => setSelectedSpecialty(e.target.value)}
-                  className="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-teal-500"
-                >
-                  <option value="all">Todas las Especialidades ({SPECIALTIES_LIST.length})</option>
-                  {SPECIALTIES_LIST.map((spec) => (
-                    <option key={spec.name} value={spec.name}>
-                      {spec.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Sector Filter */}
-              <div>
-                <label className="block text-[11px] font-bold text-slate-600 mb-1">
-                  Sector / Locación
-                </label>
-                <select
-                  id="select-filter-sector"
-                  value={selectedSector}
-                  onChange={(e) => setSelectedSector(e.target.value)}
-                  className="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-teal-500"
-                >
-                  <option value="all">Todos los Sectores</option>
-                  {ECUADOR_SECTORS.map((s) => (
-                    <option key={s} value={s}>
-                      {s}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Service Plan Filter */}
-              <div>
-                <label className="block text-[11px] font-bold text-slate-600 mb-1">
-                  Servicio Médico Ofertado
-                </label>
-                <select
-                  id="select-filter-service"
-                  value={selectedService}
-                  onChange={(e) => setSelectedService(e.target.value)}
-                  className="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-teal-500"
-                >
-                  <option value="all">Todos los Planes</option>
-                  <option value="99">Perfil Médico 1 año ($99)</option>
-                  <option value="150">Perfil Médico 2 años ($150)</option>
-                </select>
-              </div>
-
-              {/* Payment Status Filter */}
-              <div>
-                <label className="block text-[11px] font-bold text-slate-600 mb-1">
-                  Estado de Cobro / Pago
-                </label>
-                <select
-                  id="select-filter-payment"
-                  value={selectedPaymentStatus}
-                  onChange={(e) => setSelectedPaymentStatus(e.target.value)}
-                  className="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-teal-500"
-                >
-                  <option value="all">Todos los Estados de Pago</option>
-                  <option value="pagado">Pagado Total</option>
-                  <option value="parcial">Con Anticipo (Parcial)</option>
-                  <option value="pendiente">Pendiente de Pago</option>
-                  <option value="no_aplica">No Aplica</option>
-                </select>
-              </div>
-
+          <div className="pt-3 border-t border-slate-100 dark:border-slate-800 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5 animate-in fade-in slide-in-from-top-1 duration-150">
+            {/* Specialty */}
+            <div>
+              <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">
+                Especialidad
+              </label>
+              <select
+                value={selectedSpecialty}
+                onChange={(e) => setSelectedSpecialty(e.target.value)}
+                className="w-full text-xs px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-medium focus:outline-none focus:border-teal-500"
+              >
+                <option value="all">Todas ({leads.length})</option>
+                {getAllSpecialties().map((s) => (
+                  <option key={s.name} value={s.name}>
+                    {s.name}
+                  </option>
+                ))}
+              </select>
             </div>
 
-            {/* Reset Filters CTA */}
+            {/* City */}
+            <div>
+              <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">
+                Ciudad (Ecuador)
+              </label>
+              <select
+                value={selectedCity}
+                onChange={(e) => setSelectedCity(e.target.value)}
+                className="w-full text-xs px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-medium focus:outline-none focus:border-teal-500"
+              >
+                <option value="all">Todas las ciudades</option>
+                <option value="Manta">Manta</option>
+                <option value="Portoviejo">Portoviejo</option>
+                <option value="Guayaquil">Guayaquil</option>
+                <option value="Quito">Quito</option>
+                <option value="Cuenca">Cuenca</option>
+              </select>
+            </div>
+
+            {/* Sector */}
+            <div>
+              <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">
+                Sector / Zona
+              </label>
+              <select
+                value={selectedSector}
+                onChange={(e) => setSelectedSector(e.target.value)}
+                className="w-full text-xs px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-medium focus:outline-none focus:border-teal-500"
+              >
+                <option value="all">Todos los sectores</option>
+                {ECUADOR_SECTORS.map((sec) => (
+                  <option key={sec} value={sec}>
+                    {sec}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Plan / Pricing */}
+            <div>
+              <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">
+                Plan Ofertado
+              </label>
+              <select
+                value={selectedService}
+                onChange={(e) => setSelectedService(e.target.value)}
+                className="w-full text-xs px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-medium focus:outline-none focus:border-teal-500"
+              >
+                <option value="all">Todos los planes</option>
+                <option value="99">Plan 1 año ($99 USD)</option>
+                <option value="150">Plan 2 años ($150 USD)</option>
+              </select>
+            </div>
+
+            {/* Payment Status */}
+            <div>
+              <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">
+                Estado Pago
+              </label>
+              <select
+                value={selectedPaymentStatus}
+                onChange={(e) => setSelectedPaymentStatus(e.target.value)}
+                className="w-full text-xs px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-medium focus:outline-none focus:border-teal-500"
+              >
+                <option value="all">Todos</option>
+                <option value="pagado">Pagado</option>
+                <option value="parcial">Anticipo / Parcial</option>
+                <option value="pendiente">Pendiente</option>
+                <option value="no_aplica">No Aplica</option>
+              </select>
+            </div>
+
+            {/* Clear Filters Reset */}
             {activeFiltersCount > 0 && (
-              <div className="flex justify-end mt-2">
+              <div className="sm:col-span-2 lg:col-span-5 flex justify-end pt-1">
                 <button
+                  type="button"
                   onClick={clearAllFilters}
-                  className="text-xs text-rose-600 hover:text-rose-700 font-semibold flex items-center gap-1 cursor-pointer"
+                  className="text-xs text-rose-600 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300 font-bold hover:underline flex items-center gap-1 cursor-pointer"
                 >
-                  <X className="w-3 h-3" />
+                  <X className="w-3.5 h-3.5" />
                   <span>Limpiar todos los filtros</span>
                 </button>
               </div>
@@ -456,22 +378,60 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
           </div>
         )}
 
+        {/* Active Filters Bar (shown only when filters are active) */}
+        {activeFiltersCount > 0 && !isFilterTrayOpen && (
+          <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center gap-1.5 text-xs">
+            <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400">Filtros activos:</span>
+            {selectedSpecialty !== 'all' && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-teal-50 dark:bg-teal-950/60 text-teal-800 dark:text-teal-300 border border-teal-200 dark:border-teal-800 text-[11px] font-medium">
+                {selectedSpecialty}
+                <button type="button" onClick={() => setSelectedSpecialty('all')} className="hover:text-teal-950 dark:hover:text-teal-100 font-bold ml-0.5">×</button>
+              </span>
+            )}
+            {selectedSector !== 'all' && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 text-[11px] font-medium">
+                Sector: {selectedSector}
+                <button type="button" onClick={() => setSelectedSector('all')} className="hover:text-slate-950 dark:hover:text-white font-bold ml-0.5">×</button>
+              </span>
+            )}
+            {selectedService !== 'all' && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 text-[11px] font-medium">
+                Plan: {selectedService === '99' ? '$99' : '$150'}
+                <button type="button" onClick={() => setSelectedService('all')} className="hover:text-emerald-950 dark:hover:text-white font-bold ml-0.5">×</button>
+              </span>
+            )}
+            {selectedPaymentStatus !== 'all' && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-sky-50 dark:bg-sky-950/60 text-sky-800 dark:text-sky-300 border border-sky-200 dark:border-sky-800 text-[11px] font-medium">
+                Pago: {selectedPaymentStatus}
+                <button type="button" onClick={() => setSelectedPaymentStatus('all')} className="hover:text-sky-950 dark:hover:text-white font-bold ml-0.5">×</button>
+              </span>
+            )}
+            <button
+              type="button"
+              onClick={clearAllFilters}
+              className="text-[11px] font-bold text-rose-600 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300 hover:underline ml-1 cursor-pointer"
+            >
+              Limpiar todo
+            </button>
+          </div>
+        )}
+
       </div>
 
       {/* 48h Overdue Leads Alert Ribbon */}
       {overdueCount > 0 && !effectiveOnlyOverdue && (
-        <div className="bg-rose-50/90 border border-rose-200/90 rounded-2xl p-3 sm:px-4 sm:py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 shadow-2xs animate-in fade-in">
+        <div className="bg-rose-50/90 dark:bg-rose-950/40 border border-rose-200/90 dark:border-rose-900/60 rounded-2xl p-3 sm:px-4 sm:py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 shadow-2xs animate-in fade-in">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center shrink-0">
-              <AlertTriangle className="w-4 h-4 text-rose-600" />
+            <div className="w-8 h-8 rounded-xl bg-rose-100 dark:bg-rose-900/60 text-rose-700 dark:text-rose-300 flex items-center justify-center shrink-0">
+              <AlertTriangle className="w-4 h-4 text-rose-600 dark:text-rose-400" />
             </div>
             <div>
-              <h4 className="text-xs font-bold text-rose-900">
+              <h4 className="text-xs font-bold text-rose-900 dark:text-rose-200">
                 {overdueCount === 1 
                   ? '1 prospecto médico requiere actualización (+48h)' 
                   : `${overdueCount} prospectos médicos requieren actualización (+48h)`}
               </h4>
-              <p className="text-[11px] text-rose-700">
+              <p className="text-[11px] text-rose-700 dark:text-rose-300">
                 Han transcurrido más de 48 horas sin registrar contacto en el CRM.
               </p>
             </div>
@@ -479,14 +439,14 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
           <div className="flex items-center gap-2 self-end sm:self-center">
             <button
               onClick={() => setInternalOnlyOverdue(true)}
-              className="px-3 py-1.5 rounded-xl bg-white hover:bg-rose-50 text-rose-800 border border-rose-300 text-xs font-bold transition-all shadow-2xs cursor-pointer"
+              className="px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800 hover:bg-rose-50 dark:hover:bg-slate-700 text-rose-800 dark:text-rose-300 border border-rose-300 dark:border-rose-800 text-xs font-bold transition-all shadow-2xs cursor-pointer"
             >
               Filtrar en Tablero
             </button>
             {onOpenNotificationCenter && (
               <button
                 onClick={onOpenNotificationCenter}
-                className="px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition-all shadow-2xs cursor-pointer flex items-center gap-1.5"
+                className="px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white text-xs font-bold transition-all shadow-2xs cursor-pointer flex items-center gap-1.5"
               >
                 <BellRing className="w-3.5 h-3.5" />
                 <span>Ver Notificaciones</span>
@@ -498,9 +458,9 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
 
       {/* Filter Active Alert Banner */}
       {effectiveOnlyOverdue && (
-        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-3 flex items-center justify-between text-xs text-amber-900 shadow-2xs">
+        <div className="bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/80 rounded-2xl p-3 flex items-center justify-between text-xs text-amber-900 dark:text-amber-200 shadow-2xs">
           <span className="font-semibold flex items-center gap-2">
-            <Clock className="w-4 h-4 text-amber-600" />
+            <Clock className="w-4 h-4 text-amber-600 dark:text-amber-400" />
             <span>Mostrando únicamente los <strong>{filteredLeads.length}</strong> médicos con más de 48 horas sin actualización</span>
           </span>
           <button
@@ -508,7 +468,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
               setInternalOnlyOverdue(false);
               if (onToggleOnlyOverdue && filterOnlyOverdue) onToggleOnlyOverdue();
             }}
-            className="px-2.5 py-1 rounded-lg bg-white border border-amber-300 text-amber-800 font-bold hover:bg-amber-100 transition-colors cursor-pointer text-xs"
+            className="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border border-amber-300 dark:border-amber-700 text-amber-800 dark:text-amber-300 font-bold hover:bg-amber-100 dark:hover:bg-slate-700 transition-colors cursor-pointer text-xs"
           >
             Mostrar Todos
           </button>
@@ -530,13 +490,13 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold shrink-0 transition-all cursor-pointer ${
                   isActive
                     ? 'bg-teal-600 text-white shadow-xs'
-                    : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+                    : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700'
                 }`}
               >
                 <span>{s.name}</span>
                 <span
                   className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
-                    isActive ? 'bg-white/25 text-white' : 'bg-slate-100 text-slate-700'
+                    isActive ? 'bg-white/25 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
                   }`}
                 >
                   {count}
@@ -547,17 +507,17 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
         </div>
 
         {/* Active Stage Card View */}
-        <div className="bg-slate-100/90 rounded-2xl border border-slate-200 p-3 mt-2">
+        <div className="bg-slate-100/90 dark:bg-slate-900/80 rounded-2xl border border-slate-200 dark:border-slate-800 p-3 mt-2">
           
           {/* Header of Active Stage with Next / Prev Arrows */}
-          <div className="flex items-center justify-between pb-3 border-b border-slate-200/80">
+          <div className="flex items-center justify-between pb-3 border-b border-slate-200/80 dark:border-slate-800">
             <div className="flex items-center gap-2">
               <span className={`w-3 h-3 rounded-full ${currentStageMeta.color}`} />
               <div>
-                <h3 className="text-sm font-black text-slate-900">
+                <h3 className="text-sm font-black text-slate-900 dark:text-slate-100">
                   {currentStageMeta.name}
                 </h3>
-                <span className="text-[11px] font-semibold text-slate-500">
+                <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
                   {activeStageLeads.length} médicos · {formatCurrency(activeStageTotalValue)}
                 </span>
               </div>
@@ -567,7 +527,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
               <button
                 disabled={!prevStage}
                 onClick={() => prevStage && setActiveMobileStage(prevStage.id)}
-                className="p-1.5 rounded-lg border border-slate-200 bg-white text-slate-700 disabled:opacity-30 cursor-pointer"
+                className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 disabled:opacity-30 cursor-pointer"
                 title="Etapa anterior"
               >
                 <ChevronLeft className="w-4 h-4" />
@@ -575,7 +535,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
               <button
                 disabled={!nextStage}
                 onClick={() => nextStage && setActiveMobileStage(nextStage.id)}
-                className="p-1.5 rounded-lg border border-slate-200 bg-white text-slate-700 disabled:opacity-30 cursor-pointer"
+                className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 disabled:opacity-30 cursor-pointer"
                 title="Etapa siguiente"
               >
                 <ChevronRight className="w-4 h-4" />
@@ -592,18 +552,19 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                 onOpenEdit={onOpenEdit}
                 onOpenWhatsApp={onOpenWhatsApp}
                 onStageChange={onStageChange}
+                onDeleteLead={onDeleteLead ? (l) => setLeadToDelete(l) : undefined}
               />
             ))}
 
             {activeStageLeads.length === 0 && (
-              <div className="py-8 text-center text-slate-400 text-xs bg-white/60 rounded-xl border border-dashed border-slate-300">
+              <div className="py-8 text-center text-slate-400 dark:text-slate-500 text-xs bg-white/60 dark:bg-slate-850/60 rounded-xl border border-dashed border-slate-300 dark:border-slate-800">
                 No hay médicos en la etapa {currentStageMeta.name}
               </div>
             )}
 
             <button
               onClick={() => onAddNewLeadInStage(activeMobileStage)}
-              className="w-full py-2.5 rounded-xl border border-dashed border-teal-300 bg-teal-50/60 hover:bg-teal-50 text-teal-700 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+              className="w-full py-2.5 rounded-xl border border-dashed border-teal-300 dark:border-teal-700 bg-teal-50/60 dark:bg-teal-950/30 hover:bg-teal-50 dark:hover:bg-teal-900/40 text-teal-700 dark:text-teal-300 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
             >
               <Plus className="w-4 h-4" />
               <span>Añadir médico a {currentStageMeta.name}</span>
@@ -620,7 +581,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
           mobileViewMode === 'columns' ? 'block' : 'hidden md:block'
         } overflow-x-auto pb-4`}
       >
-        <div className="flex gap-4 min-w-[1240px] items-start">
+        <div className="flex gap-4 min-w-full items-start">
           {STAGES.map((stage) => {
             const stageLeads = getStageLeads(stage.id);
             const stageTotalValue = stageLeads.reduce(
@@ -636,30 +597,30 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                 onDragOver={(e) => handleDragOver(e, stage.id)}
                 onDragLeave={handleDragLeave}
                 onDrop={(e) => handleDropOnColumn(e, stage.id)}
-                className={`w-72 sm:w-80 shrink-0 flex flex-col rounded-2xl transition-all duration-150 ${
+                className={`flex-1 min-w-[270px] shrink-0 flex flex-col rounded-2xl transition-all duration-150 ${
                   isDragOver
-                    ? 'bg-teal-50/90 ring-2 ring-teal-500 border-teal-400'
-                    : 'bg-slate-100/80 border border-slate-200/90'
+                    ? 'bg-teal-50/90 dark:bg-teal-950/40 ring-2 ring-teal-500 border-teal-400 dark:border-teal-600'
+                    : 'bg-slate-100/80 dark:bg-slate-900/70 border border-slate-200/90 dark:border-slate-800'
                 }`}
               >
                 {/* Stage Header */}
-                <div className="p-3.5 border-b border-slate-200 flex items-center justify-between">
+                <div className="p-3.5 border-b border-slate-200/90 dark:border-slate-800 flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span className={`w-3 h-3 rounded-full ${stage.color} shadow-2xs`} />
-                    <h3 className="text-xs font-black text-slate-800 tracking-tight">
+                    <h3 className="text-xs font-black text-slate-800 dark:text-slate-200 tracking-tight">
                       {stage.name}
                     </h3>
                   </div>
 
                   <div className="flex items-center gap-1.5">
-                    <span className="text-[11px] font-bold text-slate-500 bg-white px-2 py-0.5 rounded-full border border-slate-200 shadow-2xs">
+                    <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800 px-2 py-0.5 rounded-full border border-slate-200 dark:border-slate-700 shadow-2xs">
                       {stageLeads.length}
                     </span>
                     <button
                       id={`btn-add-in-stage-${stage.id}`}
                       onClick={() => onAddNewLeadInStage(stage.id)}
                       title={`Agregar médico en ${stage.name}`}
-                      className="w-6 h-6 rounded-lg bg-white hover:bg-slate-200 border border-slate-200 flex items-center justify-center text-slate-600 transition-colors cursor-pointer"
+                      className="w-6 h-6 rounded-lg bg-white dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 transition-colors cursor-pointer"
                     >
                       <Plus className="w-3.5 h-3.5" />
                     </button>
@@ -667,9 +628,9 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                 </div>
 
                 {/* Sub-header: Total stage estimated amount */}
-                <div className="px-3.5 py-1.5 bg-slate-50/70 border-b border-slate-200/60 flex items-center justify-between text-[11px] text-slate-500">
+                <div className="px-3.5 py-1.5 bg-slate-50/70 dark:bg-slate-850/60 border-b border-slate-200/60 dark:border-slate-800/80 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
                   <span>Valor en etapa:</span>
-                  <span className="font-bold text-slate-800">
+                  <span className="font-bold text-slate-800 dark:text-slate-200">
                     {formatCurrency(stageTotalValue)}
                   </span>
                 </div>
@@ -689,17 +650,18 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                           onOpenEdit={onOpenEdit}
                           onOpenWhatsApp={onOpenWhatsApp}
                           onStageChange={onStageChange}
+                          onDeleteLead={onDeleteLead ? (l) => setLeadToDelete(l) : undefined}
                         />
                       </div>
                     );
                   })}
 
                   {stageLeads.length === 0 && (
-                    <div className="h-32 flex flex-col items-center justify-center text-slate-400 text-xs border border-dashed border-slate-300 rounded-xl p-4 text-center">
+                    <div className="h-32 flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 text-xs border border-dashed border-slate-300 dark:border-slate-800 rounded-xl p-4 text-center">
                       <span>Sin médicos en {stage.name.toLowerCase()}</span>
                       <button
                         onClick={() => onAddNewLeadInStage(stage.id)}
-                        className="mt-2 text-teal-600 hover:text-teal-700 font-bold text-[11px] cursor-pointer"
+                        className="mt-2 text-teal-600 dark:text-teal-400 hover:underline font-bold text-[11px] cursor-pointer"
                       >
                         + Agregar
                       </button>
@@ -708,10 +670,10 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                 </div>
 
                 {/* Footer quick add */}
-                <div className="p-2 border-t border-slate-200/80 bg-slate-50/50 rounded-b-2xl">
+                <div className="p-2 border-t border-slate-200/80 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 rounded-b-2xl">
                   <button
                     onClick={() => onAddNewLeadInStage(stage.id)}
-                    className="w-full py-1.5 text-xs text-slate-600 hover:text-teal-700 hover:bg-white rounded-lg font-semibold flex items-center justify-center gap-1 transition-colors cursor-pointer"
+                    className="w-full py-1.5 text-xs text-slate-600 dark:text-slate-400 hover:text-teal-700 dark:hover:text-teal-300 hover:bg-white dark:hover:bg-slate-800 rounded-lg font-semibold flex items-center justify-center gap-1 transition-colors cursor-pointer"
                   >
                     <Plus className="w-3.5 h-3.5" />
                     <span>Añadir</span>
@@ -723,6 +685,18 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
           })}
         </div>
       </div>
+
+      {/* Delete Confirmation Modal for Kanban Cards */}
+      <DeleteConfirmationModal
+        isOpen={Boolean(leadToDelete)}
+        onClose={() => setLeadToDelete(null)}
+        onConfirm={() => {
+          if (leadToDelete && onDeleteLead) {
+            onDeleteLead(leadToDelete.id);
+          }
+        }}
+        lead={leadToDelete}
+      />
 
     </div>
   );

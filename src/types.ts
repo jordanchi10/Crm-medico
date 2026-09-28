@@ -13,7 +13,27 @@ export type MedicalSpecialty =
   | 'Otorrinolaringología'
   | 'Psiquiatría'
   | 'Oncología'
-  | 'Otra Especialidad';
+  | 'Medicina General / Familiar'
+  | 'Gastroenterología'
+  | 'Endocrinología'
+  | 'Neumología'
+  | 'Reumatología'
+  | 'Nutrición y Dietética'
+  | 'Psicología Clínica'
+  | 'Nefrología'
+  | 'Cirugía General'
+  | 'Fisioterapia y Rehabilitación'
+  | 'Alergología e Inmunología'
+  | 'Geriatría'
+  | 'Infectología'
+  | 'Cirugía Vascular'
+  | 'Hematología'
+  | 'Medicina Estética'
+  | 'Neurocirugía'
+  | 'Radiología e Imagenología'
+  | 'Anestesiología'
+  | 'Otra Especialidad'
+  | string;
 
 export type StageId =
   | 'prospecto'
@@ -58,13 +78,29 @@ export interface MedicalService {
   isBase?: boolean;
 }
 
-export interface ActivityLog {
+export type ActivityLog = {
   id: string;
   date: string;
-  type: 'creacion' | 'etapa' | 'whatsapp' | 'pago' | 'nota' | 'cita';
+  type: 'creacion' | 'etapa' | 'whatsapp' | 'pago' | 'nota' | 'cita' | 'renovacion' | 'recibo';
   description: string;
   user?: string;
-}
+};
+
+export type MainPillarTab = 'today' | 'pipeline' | 'whatsapp' | 'analytics';
+export type PipelineSubView = 'kanban' | 'table' | 'calendar' | 'renewals';
+export type WhatsAppSubView = 'cadence' | 'templates';
+
+export type AppTab = 
+  | 'today' 
+  | 'pipeline'
+  | 'whatsapp'
+  | 'analytics'
+  | 'kanban' 
+  | 'table' 
+  | 'calendar' 
+  | 'cadence' 
+  | 'renewals' 
+  | 'templates';
 
 export type LeadPriority = 'alta' | 'media' | 'baja';
 
@@ -91,6 +127,9 @@ export interface MedicalLead {
   nextFollowUpTime?: string; // HH:mm
   expectedClosingDate?: string; // YYYY-MM-DD
   createdAt: string; // YYYY-MM-DD
+  renewalDate?: string; // YYYY-MM-DD Fecha exacta de vencimiento / renovación anual
+  renewalYears?: number; // 1 o 2 años
+  receiptNumber?: string; // ej. REC-2026-EC-0489
   notes: string;
   tags?: string[];
   history: ActivityLog[];

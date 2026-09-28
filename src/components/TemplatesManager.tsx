@@ -20,22 +20,39 @@ import {
   Pause,
   Download,
   Layers,
-  Paperclip
+  Paperclip,
+  User,
+  Building2,
+  MapPin,
+  Phone,
+  MessageCircle,
+  Copy,
+  ExternalLink,
+  ChevronDown,
+  Search
 } from 'lucide-react';
-import { WhatsAppTemplate, StageId, TemplateMediaAttachment } from '../types';
+import { WhatsAppTemplate, StageId, TemplateMediaAttachment, MedicalLead } from '../types';
 import { STAGES } from '../data/stages';
 import { replaceTemplatePlaceholders } from '../data/whatsappTemplates';
 import { AttachmentEditorModal } from './AttachmentEditorModal';
 import { downloadMediaAttachment } from '../utils/mediaDemoAssets';
+import { formatEcuadorPhoneForWhatsApp } from '../data/ecuadorData';
+import { getSpecialtyMeta } from '../data/specialties';
+import { formatCurrency } from '../utils/storage';
+import confetti from 'canvas-confetti';
 
 interface TemplatesManagerProps {
   templates: WhatsAppTemplate[];
+  leads?: MedicalLead[];
+  onOpenWhatsApp?: (lead: MedicalLead) => void;
   onSaveTemplates: (templates: WhatsAppTemplate[]) => void;
   onResetTemplates: () => void;
 }
 
 export const TemplatesManager: React.FC<TemplatesManagerProps> = ({
   templates,
+  leads = [],
+  onOpenWhatsApp,
   onSaveTemplates,
   onResetTemplates
 }) => {
@@ -43,6 +60,9 @@ export const TemplatesManager: React.FC<TemplatesManagerProps> = ({
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>(
     templates[0]?.id || ''
   );
+  const [selectedLeadId, setSelectedLeadId] = useState<string>(leads[0]?.id || '');
+  const [doctorSearch, setDoctorSearch] = useState<string>('');
+  const [copiedSuccess, setCopiedSuccess] = useState(false);
   const [savedFeedback, setSavedFeedback] = useState(false);
   const [isAttachmentModalOpen, setIsAttachmentModalOpen] = useState(false);
   const [editingAttachment, setEditingAttachment] = useState<TemplateMediaAttachment | null>(null);
@@ -51,6 +71,9 @@ export const TemplatesManager: React.FC<TemplatesManagerProps> = ({
 
   const selectedTemplate =
     editingTemplates.find((t) => t.id === selectedTemplateId) || editingTemplates[0];
+
+  // Selected lead or fallback sample
+  const selectedLead = leads.find((l) => l.id === selectedLeadId) || leads[0] || null;
 
   const handleUpdateCurrent = (field: keyof WhatsAppTemplate, value: any) => {
     if (!selectedTemplate) return;
@@ -141,61 +164,109 @@ export const TemplatesManager: React.FC<TemplatesManagerProps> = ({
     }
   };
 
-  // Preview simulation with sample doctor
-  const sampleData = {
+  // Data for replacing placeholders
+  const activeDoctorData = selectedLead ? {
+    doctorName: selectedLead.doctorName,
+    specialty: selectedLead.specialty,
+    clinicOrHospital: selectedLead.clinicOrHospital,
+    amount: formatCurrency(selectedLead.paidAmount > 0 ? selectedLead.paidAmount : (selectedLead.estimatedValue || 99)),
+    date: selectedLead.nextFollowUpDate || 'esta semana',
+    time: selectedLead.nextFollowUpTime || '11:00 AM',
+    paymentMethod: selectedLead.paymentMethod || 'Transferencia Banco Pichincha'
+  } : {
     doctorName: 'Dr. Alejandro Morales',
     specialty: 'Cardiología',
-    clinicOrHospital: 'Centro Médico San Ángel',
-    amount: '$1,800 USD',
-    date: '25 de Septiembre',
+    clinicOrHospital: 'Clínica San Antonio (Manta)',
+    amount: '$99 USD (Plan Anual)',
+    date: '25 de Octubre',
     time: '11:00 AM',
-    paymentMethod: 'Transferencia Bancaria (SPEI)'
+    paymentMethod: 'Transferencia Banco Pichincha'
   };
 
   const previewText = selectedTemplate
-    ? replaceTemplatePlaceholders(selectedTemplate.messageText, sampleData)
+    ? replaceTemplatePlaceholders(selectedTemplate.messageText, activeDoctorData)
     : '';
 
   const attachments = selectedTemplate?.attachments || [];
 
+  // Direct WhatsApp sender to selected doctor
+  const handleDirectSendToSelectedDoctor = () => {
+    if (!selectedLead) {
+      alert('Por favor selecciona un médico de la lista.');
+      return;
+    }
+
+    const { cleanWhatsAppNumber } = formatEcuadorPhoneForWhatsApp(selectedLead.phone);
+    const targetPhone = cleanWhatsAppNumber || selectedLead.phone.replace(/[^0-9]/g, '');
+    const encoded = encodeURIComponent(previewText);
+    const url = `https://wa.me/${targetPhone}?text=${encoded}`;
+    window.open(url, '_blank');
+    confetti({ particleCount: 50, spread: 60, origin: { y: 0.7 } });
+  };
+
+  const handleCopyMessage = () => {
+    navigator.clipboard.writeText(previewText);
+    setCopiedSuccess(true);
+    setTimeout(() => setCopiedSuccess(false), 2000);
+  };
+
+  // Filtered leads for search
+  const filteredLeads = leads.filter((l) => {
+    if (!doctorSearch.trim()) return true;
+    const q = doctorSearch.toLowerCase();
+    return (
+      l.doctorName.toLowerCase().includes(q) ||
+      l.specialty.toLowerCase().includes(q) ||
+      l.clinicOrHospital.toLowerCase().includes(q) ||
+      (l.city || '').toLowerCase().includes(q)
+    );
+  });
+
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+    <div className="w-full px-3 sm:px-6 py-4 sm:py-6 space-y-6 animate-in fade-in duration-150">
       
       {/* Top Banner */}
-      <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div className="bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
-            <MessageSquareText className="w-5 h-5 text-emerald-600" />
-            <h2 className="text-base font-bold text-slate-900">
-              Plantillas de Notificaciones Automáticas por WhatsApp
-            </h2>
+            <div className="w-9 h-9 rounded-xl bg-teal-50 dark:bg-teal-950/60 text-teal-600 dark:text-teal-400 flex items-center justify-center border border-teal-100 dark:border-teal-900/60 shrink-0">
+              <MessageSquareText className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="text-base sm:text-lg font-black text-slate-900 dark:text-white tracking-tight">
+                Plantillas y Envío a Médicos por WhatsApp
+              </h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Elige cualquier médico de tu base, previsualiza el mensaje personalizado con sus datos y envíalo con 1 clic.
+              </p>
+            </div>
           </div>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Configura los mensajes predeterminados y la secuencia multimedia (Imágenes, PDF y Audios MP3) por etapa de ventas
-          </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <button
+            type="button"
             onClick={onResetTemplates}
             title="Restaurar plantillas recomendadas"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 text-xs text-slate-600 hover:text-slate-800 hover:bg-slate-50 transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer font-semibold"
           >
             <RotateCcw className="w-3.5 h-3.5" />
-            <span>Restaurar Predeterminadas</span>
+            <span className="hidden sm:inline">Restaurar</span>
           </button>
 
           <button
+            type="button"
             onClick={handleCreateNewTemplate}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold transition-colors cursor-pointer"
           >
             <Plus className="w-3.5 h-3.5" />
-            <span>Nueva Plantilla</span>
+            <span>+ Nueva Plantilla</span>
           </button>
 
           <button
+            type="button"
             onClick={handleSaveAll}
-            className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
           >
             {savedFeedback ? (
               <>
@@ -212,15 +283,15 @@ export const TemplatesManager: React.FC<TemplatesManagerProps> = ({
         </div>
       </div>
 
-      {/* Main Grid: Template List + Editor + Live Preview */}
+      {/* Main Grid: Template List + Editor + Live Doctor Dispatch Bar */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
         {/* Left column: Template selector */}
-        <div className="lg:col-span-4 bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden flex flex-col">
-          <div className="p-3.5 bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center justify-between">
+        <div className="lg:col-span-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-sm overflow-hidden flex flex-col">
+          <div className="p-3.5 bg-slate-50 dark:bg-slate-850 border-b border-slate-200/80 dark:border-slate-800 text-xs font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center justify-between">
             <span>Plantillas Disponibles ({editingTemplates.length})</span>
           </div>
-          <div className="divide-y divide-slate-100 max-h-[650px] overflow-y-auto">
+          <div className="divide-y divide-slate-100 dark:divide-slate-800 max-h-[620px] overflow-y-auto">
             {editingTemplates.map((tpl) => {
               const stageConfig = STAGES.find((s) => s.id === tpl.stageId);
               const isSelected = tpl.id === selectedTemplate?.id;
@@ -232,36 +303,36 @@ export const TemplatesManager: React.FC<TemplatesManagerProps> = ({
                   onClick={() => setSelectedTemplateId(tpl.id)}
                   className={`p-3.5 cursor-pointer transition-all ${
                     isSelected
-                      ? 'bg-emerald-50/70 border-l-4 border-l-emerald-600'
-                      : 'hover:bg-slate-50'
+                      ? 'bg-teal-50/80 dark:bg-teal-950/40 border-l-4 border-l-teal-600'
+                      : 'hover:bg-slate-50 dark:hover:bg-slate-800/60'
                   }`}
                 >
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-slate-900 leading-snug">
+                    <span className="text-xs font-bold text-slate-900 dark:text-white leading-snug">
                       {tpl.title}
                     </span>
-                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-700">
+                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
                       {stageConfig?.name || tpl.stageId}
                     </span>
                   </div>
-                  <p className="text-[11px] text-slate-500 mt-1 line-clamp-1">
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 line-clamp-1">
                     {tpl.description}
                   </p>
                   
                   {/* Sequence media indicator pill */}
                   <div className="flex items-center gap-1.5 mt-2">
-                    <span className="inline-flex items-center gap-1 text-[10px] font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
+                    <span className="inline-flex items-center gap-1 text-[10px] font-medium text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full">
                       <Paperclip className="w-3 h-3 text-slate-400" />
                       <span>{attCount} archivos en secuencia</span>
                     </span>
                     {tpl.attachments?.some((a) => a.type === 'image') && (
-                      <span className="text-[10px] text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded font-bold">IMG</span>
+                      <span className="text-[10px] text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/60 px-1.5 py-0.5 rounded font-bold">IMG</span>
                     )}
                     {tpl.attachments?.some((a) => a.type === 'pdf') && (
-                      <span className="text-[10px] text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded font-bold">PDF</span>
+                      <span className="text-[10px] text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/60 px-1.5 py-0.5 rounded font-bold">PDF</span>
                     )}
                     {tpl.attachments?.some((a) => a.type === 'audio') && (
-                      <span className="text-[10px] text-purple-600 bg-purple-50 px-1.5 py-0.5 rounded font-bold">MP3</span>
+                      <span className="text-[10px] text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/60 px-1.5 py-0.5 rounded font-bold">MP3</span>
                     )}
                   </div>
                 </div>
@@ -270,23 +341,154 @@ export const TemplatesManager: React.FC<TemplatesManagerProps> = ({
           </div>
         </div>
 
-        {/* Right column: Editor & Preview */}
+        {/* Right column: Interactive Doctor Selector + WhatsApp Dispatch + Editor */}
         {selectedTemplate && (
           <div className="lg:col-span-8 space-y-6">
             
-            {/* Editor card */}
-            <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-5 space-y-5">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            {/* DIRECT DOCTOR DISPATCH SELECTOR BOX */}
+            <div className="bg-gradient-to-br from-emerald-50 via-teal-50/50 to-white dark:from-slate-900 dark:via-emerald-950/20 dark:to-slate-900 rounded-2xl border-2 border-emerald-500/40 dark:border-emerald-500/30 p-4 sm:p-5 shadow-sm space-y-4">
+              
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-emerald-200/60 dark:border-emerald-800/40">
                 <div className="flex items-center gap-2">
-                  <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
-                  <h3 className="text-sm font-bold text-slate-900">
-                    Editar Plantilla: {selectedTemplate.title}
+                  <div className="w-8 h-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center font-bold shadow-2xs">
+                    <MessageCircle className="w-4 h-4 fill-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-black text-slate-900 dark:text-white">
+                      Elegir Especialista para Enviar esta Plantilla
+                    </h3>
+                    <p className="text-[11px] text-slate-600 dark:text-slate-400">
+                      Selecciona un médico de tu CRM para sustituir automáticamente sus datos y contactarlo por WhatsApp.
+                    </p>
+                  </div>
+                </div>
+
+                <span className="text-xs font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-100/80 dark:bg-emerald-950/80 px-2.5 py-1 rounded-full self-start sm:self-auto border border-emerald-200 dark:border-emerald-800">
+                  {leads.length} médicos en base
+                </span>
+              </div>
+
+              {/* Selector and Search */}
+              <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
+                <div className="sm:col-span-7">
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                    Seleccionar Médico:
+                  </label>
+                  <div className="relative">
+                    <select
+                      value={selectedLead?.id || ''}
+                      onChange={(e) => setSelectedLeadId(e.target.value)}
+                      className="w-full text-xs font-bold px-3.5 py-2.5 rounded-xl border border-emerald-300 dark:border-emerald-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer shadow-2xs"
+                    >
+                      {leads.length === 0 ? (
+                        <option value="">No hay médicos registrados aún</option>
+                      ) : (
+                        leads.map((l) => (
+                          <option key={l.id} value={l.id}>
+                            {l.doctorName} • {l.specialty} ({l.clinicOrHospital} - {l.city || 'Ecuador'})
+                          </option>
+                        ))
+                      )}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="sm:col-span-5">
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                    Filtrar por nombre / ciudad:
+                  </label>
+                  <div className="relative">
+                    <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-3" />
+                    <input
+                      type="text"
+                      placeholder="Buscar Dr., Manta, Pediatría..."
+                      value={doctorSearch}
+                      onChange={(e) => setDoctorSearch(e.target.value)}
+                      className="w-full text-xs pl-8 pr-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Doctor Details Bar */}
+              {selectedLead && (
+                <div className="p-3 bg-white dark:bg-slate-850 rounded-xl border border-emerald-200/80 dark:border-emerald-900/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-bold text-slate-900 dark:text-white text-sm">
+                        {selectedLead.doctorName}
+                      </span>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-teal-100 dark:bg-teal-950 text-teal-800 dark:text-teal-300 border border-teal-200 dark:border-teal-800">
+                        {selectedLead.specialty}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-3 text-[11px] text-slate-500 dark:text-slate-400 flex-wrap">
+                      <span className="flex items-center gap-1">
+                        <Building2 className="w-3 h-3 text-slate-400" />
+                        <span>{selectedLead.clinicOrHospital}</span>
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <MapPin className="w-3 h-3 text-slate-400" />
+                        <span>{selectedLead.city || 'Manta'}</span>
+                      </span>
+                      <span className="flex items-center gap-1 font-mono font-bold text-emerald-700 dark:text-emerald-400">
+                        <Phone className="w-3 h-3" />
+                        <span>{selectedLead.phone} (+593 Ecuador)</span>
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Primary Dispatch Action Buttons */}
+                  <div className="flex items-center gap-2 shrink-0 flex-wrap">
+                    <button
+                      type="button"
+                      onClick={handleDirectSendToSelectedDoctor}
+                      className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-bold text-xs shadow-md hover:shadow-lg transition-all flex items-center gap-2 cursor-pointer"
+                    >
+                      <MessageCircle className="w-4 h-4 fill-white" />
+                      <span>Enviar a {selectedLead.doctorName.split(' ')[0]} {selectedLead.doctorName.split(' ')[1] || ''}</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={handleCopyMessage}
+                      className="px-3 py-2 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-700 font-bold text-xs transition-colors flex items-center gap-1.5 cursor-pointer"
+                    >
+                      {copiedSuccess ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                      <span>{copiedSuccess ? '¡Copiado!' : 'Copiar Texto'}</span>
+                    </button>
+
+                    {onOpenWhatsApp && (
+                      <button
+                        type="button"
+                        onClick={() => onOpenWhatsApp(selectedLead)}
+                        className="px-3 py-2 rounded-xl bg-teal-50 dark:bg-teal-950/60 hover:bg-teal-100 dark:hover:bg-teal-900 text-teal-800 dark:text-teal-300 border border-teal-200 dark:border-teal-800 font-bold text-xs transition-colors flex items-center gap-1.5 cursor-pointer"
+                        title="Abrir asistente completo con secuencia multimedia"
+                      >
+                        <Layers className="w-3.5 h-3.5" />
+                        <span>Asistente Secuencial</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+
+            </div>
+            
+            {/* Editor card */}
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-sm p-5 space-y-5">
+              <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-2.5 h-2.5 rounded-full bg-teal-500" />
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                    Editar Contenido de la Plantilla: {selectedTemplate.title}
                   </h3>
                 </div>
                 <button
+                  type="button"
                   onClick={() => handleDeleteTemplate(selectedTemplate.id)}
                   title="Eliminar plantilla"
-                  className="text-rose-600 hover:text-rose-800 text-xs flex items-center gap-1 cursor-pointer font-medium"
+                  className="text-rose-600 hover:text-rose-800 dark:text-rose-400 dark:hover:text-rose-300 text-xs flex items-center gap-1 cursor-pointer font-medium"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                   <span>Eliminar</span>
@@ -295,25 +497,25 @@ export const TemplatesManager: React.FC<TemplatesManagerProps> = ({
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
                     Título de la Plantilla
                   </label>
                   <input
                     type="text"
                     value={selectedTemplate.title}
                     onChange={(e) => handleUpdateCurrent('title', e.target.value)}
-                    className="w-full text-xs px-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    className="w-full text-xs px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
                     Etapa del Embudo Asociada
                   </label>
                   <select
                     value={selectedTemplate.stageId}
                     onChange={(e) => handleUpdateCurrent('stageId', e.target.value as StageId)}
-                    className="w-full text-xs px-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-semibold text-slate-800"
+                    className="w-full text-xs px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500 font-semibold"
                   >
                     {STAGES.map((s) => (
                       <option key={s.id} value={s.id}>
@@ -325,22 +527,22 @@ export const TemplatesManager: React.FC<TemplatesManagerProps> = ({
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
                   Descripción / Objetivo
                 </label>
                 <input
                   type="text"
                   value={selectedTemplate.description}
                   onChange={(e) => handleUpdateCurrent('description', e.target.value)}
-                  className="w-full text-xs px-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  className="w-full text-xs px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
                 />
               </div>
 
               {/* Tag variables helper chip bar */}
               <div>
-                <div className="flex items-center gap-1.5 text-[11px] text-slate-500 mb-1.5 font-medium">
-                  <Sparkles className="w-3.5 h-3.5 text-teal-600" />
-                  <span>Variables dinámicas disponibles (copia y pega en el texto):</span>
+                <div className="flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400 mb-1.5 font-medium">
+                  <Sparkles className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />
+                  <span>Variables dinámicas disponibles (haz clic para insertar en el texto):</span>
                 </div>
                 <div className="flex flex-wrap gap-1.5">
                   {['[Doctor]', '[Especialidad]', '[Clinica]', '[Monto]', '[Fecha]', '[Hora]', '[MetodoPago]'].map((tag) => (
@@ -350,7 +552,7 @@ export const TemplatesManager: React.FC<TemplatesManagerProps> = ({
                       onClick={() => {
                         handleUpdateCurrent('messageText', selectedTemplate.messageText + ' ' + tag);
                       }}
-                      className="px-2 py-0.5 rounded bg-slate-100 hover:bg-slate-200 font-mono text-[11px] text-slate-700 border border-slate-200 cursor-pointer"
+                      className="px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 font-mono text-[11px] text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 cursor-pointer transition-colors"
                     >
                       {tag}
                     </button>
@@ -360,7 +562,7 @@ export const TemplatesManager: React.FC<TemplatesManagerProps> = ({
 
               {/* Mensaje de texto base */}
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1 flex items-center justify-between">
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 flex items-center justify-between">
                   <span>Paso 1: Mensaje de Texto Principal (WhatsApp)</span>
                   <span className="text-[11px] font-normal text-slate-400">Se envía primero al médico</span>
                 </label>
@@ -368,21 +570,21 @@ export const TemplatesManager: React.FC<TemplatesManagerProps> = ({
                   rows={6}
                   value={selectedTemplate.messageText}
                   onChange={(e) => handleUpdateCurrent('messageText', e.target.value)}
-                  className="w-full text-xs font-sans p-3.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white text-slate-800 leading-relaxed"
+                  className="w-full text-xs font-sans p-3.5 rounded-xl border border-slate-300 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-white leading-relaxed"
                 />
               </div>
 
               {/* SECUENCIA MULTIMEDIA (IMÁGENES, PDF Y MP3) */}
-              <div className="pt-2 border-t border-slate-200/80">
+              <div className="pt-2 border-t border-slate-200/80 dark:border-slate-800">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3">
                   <div>
                     <div className="flex items-center gap-1.5">
-                      <Layers className="w-4 h-4 text-teal-600" />
-                      <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+                      <Layers className="w-4 h-4 text-teal-600 dark:text-teal-400" />
+                      <h4 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
                         Secuencia de Envío Multimedia (Imágenes, PDF y Audios MP3)
                       </h4>
                     </div>
-                    <p className="text-[11px] text-slate-500 mt-0.5">
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
                       Los archivos se enviarán secuencialmente después del texto principal. Puedes reordenarlos libremente.
                     </p>
                   </div>
@@ -393,7 +595,7 @@ export const TemplatesManager: React.FC<TemplatesManagerProps> = ({
                       setEditingAttachment(null);
                       setIsAttachmentModalOpen(true);
                     }}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-teal-50 hover:bg-teal-100 text-teal-800 border border-teal-200 text-xs font-bold transition-colors cursor-pointer shrink-0"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-teal-50 dark:bg-teal-950/60 hover:bg-teal-100 dark:hover:bg-teal-900 text-teal-800 dark:text-teal-300 border border-teal-200 dark:border-teal-800 text-xs font-bold transition-colors cursor-pointer shrink-0"
                   >
                     <Plus className="w-3.5 h-3.5" />
                     <span>Agregar Archivo a la Secuencia</span>
@@ -401,8 +603,8 @@ export const TemplatesManager: React.FC<TemplatesManagerProps> = ({
                 </div>
 
                 {attachments.length === 0 ? (
-                  <div className="p-4 rounded-xl border border-dashed border-slate-300 bg-slate-50 text-center text-slate-500 text-xs space-y-2">
-                    <p className="font-semibold text-slate-700">Esta plantilla no tiene archivos en la secuencia.</p>
+                  <div className="p-4 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-850 text-center text-slate-500 dark:text-slate-400 text-xs space-y-2">
+                    <p className="font-semibold text-slate-700 dark:text-slate-300">Esta plantilla no tiene archivos en la secuencia.</p>
                     <p className="text-[11px] text-slate-400">
                       Haz clic en "Agregar Archivo a la Secuencia" para adjuntar infografías, propuestas en PDF o notas de voz en MP3.
                     </p>
@@ -415,11 +617,11 @@ export const TemplatesManager: React.FC<TemplatesManagerProps> = ({
                       return (
                         <div
                           key={att.id}
-                          className="p-3 bg-slate-50 hover:bg-slate-100/80 border border-slate-200 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-colors"
+                          className="p-3 bg-slate-50 dark:bg-slate-850 hover:bg-slate-100/80 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-colors"
                         >
                           <div className="flex items-center gap-3 overflow-hidden">
                             {/* Step index badge */}
-                            <div className="w-7 h-7 rounded-lg bg-slate-200 text-slate-700 font-bold text-xs flex items-center justify-center shrink-0">
+                            <div className="w-7 h-7 rounded-lg bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs flex items-center justify-center shrink-0">
                               #{stepNumber}
                             </div>
 
@@ -436,22 +638,22 @@ export const TemplatesManager: React.FC<TemplatesManagerProps> = ({
                             {/* Details */}
                             <div className="truncate">
                               <div className="flex items-center gap-2">
-                                <span className="font-bold text-slate-800 text-xs truncate">
+                                <span className="font-bold text-slate-800 dark:text-slate-200 text-xs truncate">
                                   {att.title}
                                 </span>
                                 <span className={`text-[10px] font-bold px-1.5 py-0.2 rounded uppercase ${
-                                  att.type === 'image' ? 'bg-blue-100 text-blue-800' :
-                                  att.type === 'pdf' ? 'bg-rose-100 text-rose-800' : 'bg-purple-100 text-purple-800'
+                                  att.type === 'image' ? 'bg-blue-100 dark:bg-blue-950 text-blue-800 dark:text-blue-300' :
+                                  att.type === 'pdf' ? 'bg-rose-100 dark:bg-rose-950 text-rose-800 dark:text-rose-300' : 'bg-purple-100 dark:bg-purple-950 text-purple-800 dark:text-purple-300'
                                 }`}>
                                   {att.type === 'audio' ? `MP3 (${att.duration || '0:35'})` : att.type.toUpperCase()}
                                 </span>
                               </div>
-                              <div className="text-[11px] text-slate-500 truncate mt-0.5">
+                              <div className="text-[11px] text-slate-500 dark:text-slate-400 truncate mt-0.5">
                                 <span className="font-mono">{att.fileName}</span>
                                 {att.fileSize && <span> · {att.fileSize}</span>}
                               </div>
                               {att.caption && (
-                                <p className="text-[10px] text-slate-600 italic truncate mt-0.5">
+                                <p className="text-[10px] text-slate-600 dark:text-slate-400 italic truncate mt-0.5">
                                   "{att.caption}"
                                 </p>
                               )}
@@ -465,7 +667,7 @@ export const TemplatesManager: React.FC<TemplatesManagerProps> = ({
                                 type="button"
                                 onClick={() => togglePlayAudioPreview(att.url, att.id)}
                                 title="Escuchar audio"
-                                className="p-1.5 rounded-lg bg-purple-100 hover:bg-purple-200 text-purple-800 text-xs font-bold flex items-center gap-1 cursor-pointer"
+                                className="p-1.5 rounded-lg bg-purple-100 dark:bg-purple-950/80 hover:bg-purple-200 dark:hover:bg-purple-900 text-purple-800 dark:text-purple-300 text-xs font-bold flex items-center gap-1 cursor-pointer"
                               >
                                 {playingAudioId === att.id ? (
                                   <Pause className="w-3.5 h-3.5" />
@@ -481,7 +683,7 @@ export const TemplatesManager: React.FC<TemplatesManagerProps> = ({
                               disabled={index === 0}
                               onClick={() => handleMoveAttachment(index, 'up')}
                               title="Subir en la secuencia"
-                              className="p-1.5 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-200 disabled:opacity-30 cursor-pointer disabled:cursor-not-allowed"
+                              className="p-1.5 rounded-lg text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-30 cursor-pointer disabled:cursor-not-allowed"
                             >
                               <ArrowUp className="w-3.5 h-3.5" />
                             </button>
@@ -491,7 +693,7 @@ export const TemplatesManager: React.FC<TemplatesManagerProps> = ({
                               disabled={index === attachments.length - 1}
                               onClick={() => handleMoveAttachment(index, 'down')}
                               title="Bajar en la secuencia"
-                              className="p-1.5 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-200 disabled:opacity-30 cursor-pointer disabled:cursor-not-allowed"
+                              className="p-1.5 rounded-lg text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-800 disabled:opacity-30 cursor-pointer disabled:cursor-not-allowed"
                             >
                               <ArrowDown className="w-3.5 h-3.5" />
                             </button>
@@ -504,7 +706,7 @@ export const TemplatesManager: React.FC<TemplatesManagerProps> = ({
                                 setIsAttachmentModalOpen(true);
                               }}
                               title="Editar archivo"
-                              className="p-1.5 rounded-lg text-slate-500 hover:text-teal-700 hover:bg-teal-50 cursor-pointer"
+                              className="p-1.5 rounded-lg text-slate-500 hover:text-teal-700 dark:hover:text-teal-400 hover:bg-teal-50 dark:hover:bg-slate-800 cursor-pointer"
                             >
                               <Edit2 className="w-3.5 h-3.5" />
                             </button>
@@ -514,7 +716,7 @@ export const TemplatesManager: React.FC<TemplatesManagerProps> = ({
                               type="button"
                               onClick={() => handleDeleteAttachment(att.id)}
                               title="Eliminar de la secuencia"
-                              className="p-1.5 rounded-lg text-slate-500 hover:text-rose-700 hover:bg-rose-50 cursor-pointer"
+                              className="p-1.5 rounded-lg text-slate-500 hover:text-rose-700 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-slate-800 cursor-pointer"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
                             </button>
@@ -528,28 +730,28 @@ export const TemplatesManager: React.FC<TemplatesManagerProps> = ({
             </div>
 
             {/* Simulated Live Preview in WhatsApp Card - Entire Sequential Flow */}
-            <div className="bg-[#EFEAE2] rounded-xl border border-[#D1D7DB] p-4 shadow-sm relative overflow-hidden space-y-3">
-              <div className="flex items-center justify-between pb-2 border-b border-[#D1D7DB]/60">
+            <div className="bg-[#EFEAE2] dark:bg-slate-950 rounded-2xl border border-[#D1D7DB] dark:border-slate-800 p-4 shadow-sm relative overflow-hidden space-y-3">
+              <div className="flex items-center justify-between pb-2 border-b border-[#D1D7DB]/60 dark:border-slate-800">
                 <div className="flex items-center gap-2">
-                  <Eye className="w-4 h-4 text-emerald-800" />
-                  <span className="text-xs font-bold text-emerald-950 uppercase tracking-wider">
-                    Simulación de Chat WhatsApp: Secuencia Completa en Orden
+                  <Eye className="w-4 h-4 text-emerald-800 dark:text-emerald-400" />
+                  <span className="text-xs font-black text-emerald-950 dark:text-emerald-300 uppercase tracking-wider">
+                    Simulación de Chat WhatsApp para: {activeDoctorData.doctorName}
                   </span>
                 </div>
-                <span className="text-[10px] text-emerald-900 bg-white/70 px-2 py-0.5 rounded-full font-semibold">
+                <span className="text-[10px] text-emerald-900 dark:text-emerald-300 bg-white/80 dark:bg-slate-900 px-2.5 py-0.5 rounded-full font-bold border border-emerald-200 dark:border-emerald-800">
                   {1 + attachments.length} mensajes secuenciales
                 </span>
               </div>
 
               {/* Chat bubble 1: Main Text Message */}
-              <div className="max-w-md bg-white rounded-lg p-3.5 shadow-xs border border-slate-200/60 text-xs text-slate-800 whitespace-pre-line leading-relaxed">
-                <div className="text-[10px] font-bold text-teal-800 uppercase tracking-wider mb-1 flex items-center gap-1">
-                  <span>Mensaje 1 de {1 + attachments.length} (Texto)</span>
+              <div className="max-w-md bg-white dark:bg-slate-850 rounded-2xl p-3.5 shadow-xs border border-slate-200/60 dark:border-slate-800 text-xs text-slate-800 dark:text-slate-200 whitespace-pre-line leading-relaxed">
+                <div className="text-[10px] font-bold text-teal-800 dark:text-teal-400 uppercase tracking-wider mb-1 flex items-center gap-1">
+                  <span>Mensaje 1 de {1 + attachments.length} (Texto Personalizado)</span>
                 </div>
                 {previewText}
                 <div className="text-right text-[10px] text-slate-400 mt-2 font-mono flex items-center justify-end gap-1">
                   <span>11:42 AM</span>
-                  <span className="text-teal-600 font-bold">✓✓</span>
+                  <span className="text-teal-600 dark:text-teal-400 font-bold">✓✓</span>
                 </div>
               </div>
 
@@ -557,24 +759,24 @@ export const TemplatesManager: React.FC<TemplatesManagerProps> = ({
               {attachments.map((att, i) => {
                 const bubbleNum = i + 2;
                 const resolvedCaption = att.caption
-                  ? replaceTemplatePlaceholders(att.caption, sampleData)
+                  ? replaceTemplatePlaceholders(att.caption, activeDoctorData)
                   : '';
 
                 if (att.type === 'image') {
                   return (
-                    <div key={att.id} className="max-w-md bg-white rounded-lg p-2 shadow-xs border border-slate-200/60 text-xs text-slate-800 space-y-2">
-                      <div className="text-[10px] font-bold text-blue-800 uppercase tracking-wider px-1 pt-1">
+                    <div key={att.id} className="max-w-md bg-white dark:bg-slate-850 rounded-2xl p-2 shadow-xs border border-slate-200/60 dark:border-slate-800 text-xs text-slate-800 dark:text-slate-200 space-y-2">
+                      <div className="text-[10px] font-bold text-blue-800 dark:text-blue-400 uppercase tracking-wider px-1 pt-1">
                         Mensaje {bubbleNum} de {1 + attachments.length} (Imagen: {att.title})
                       </div>
-                      <div className="rounded-lg overflow-hidden border border-slate-200 max-h-56 bg-slate-900">
+                      <div className="rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 max-h-56 bg-slate-900">
                         <img src={att.url} alt={att.title} className="w-full object-cover" />
                       </div>
                       {resolvedCaption && (
-                        <p className="px-1 text-xs text-slate-800 leading-snug">{resolvedCaption}</p>
+                        <p className="px-1 text-xs text-slate-800 dark:text-slate-200 leading-snug">{resolvedCaption}</p>
                       )}
                       <div className="text-right text-[10px] text-slate-400 px-1 font-mono flex items-center justify-end gap-1">
                         <span>11:43 AM</span>
-                        <span className="text-teal-600 font-bold">✓✓</span>
+                        <span className="text-teal-600 dark:text-teal-400 font-bold">✓✓</span>
                       </div>
                     </div>
                   );
@@ -582,25 +784,25 @@ export const TemplatesManager: React.FC<TemplatesManagerProps> = ({
 
                 if (att.type === 'pdf') {
                   return (
-                    <div key={att.id} className="max-w-md bg-white rounded-lg p-3 shadow-xs border border-slate-200/60 text-xs text-slate-800 space-y-2">
-                      <div className="text-[10px] font-bold text-rose-800 uppercase tracking-wider">
+                    <div key={att.id} className="max-w-md bg-white dark:bg-slate-850 rounded-2xl p-3 shadow-xs border border-slate-200/60 dark:border-slate-800 text-xs text-slate-800 dark:text-slate-200 space-y-2">
+                      <div className="text-[10px] font-bold text-rose-800 dark:text-rose-400 uppercase tracking-wider">
                         Mensaje {bubbleNum} de {1 + attachments.length} (Documento PDF)
                       </div>
-                      <div className="flex items-center gap-2.5 p-2 bg-[#F0F2F5] rounded-lg border border-slate-200">
-                        <div className="w-9 h-9 rounded bg-rose-600 text-white font-bold text-xs flex items-center justify-center shrink-0">
+                      <div className="flex items-center gap-2.5 p-2 bg-[#F0F2F5] dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700">
+                        <div className="w-9 h-9 rounded-lg bg-rose-600 text-white font-bold text-xs flex items-center justify-center shrink-0">
                           PDF
                         </div>
                         <div className="truncate flex-1">
-                          <div className="font-bold text-slate-800 text-xs truncate">{att.fileName}</div>
-                          <div className="text-[10px] text-slate-500">{att.fileSize || '1.4 MB'} · Documento PDF</div>
+                          <div className="font-bold text-slate-800 dark:text-slate-200 text-xs truncate">{att.fileName}</div>
+                          <div className="text-[10px] text-slate-500 dark:text-slate-400">{att.fileSize || '1.4 MB'} · Documento PDF</div>
                         </div>
                       </div>
                       {resolvedCaption && (
-                        <p className="text-xs text-slate-800 leading-snug">{resolvedCaption}</p>
+                        <p className="text-xs text-slate-800 dark:text-slate-200 leading-snug">{resolvedCaption}</p>
                       )}
                       <div className="text-right text-[10px] text-slate-400 font-mono flex items-center justify-end gap-1">
                         <span>11:44 AM</span>
-                        <span className="text-teal-600 font-bold">✓✓</span>
+                        <span className="text-teal-600 dark:text-teal-400 font-bold">✓✓</span>
                       </div>
                     </div>
                   );
@@ -608,13 +810,13 @@ export const TemplatesManager: React.FC<TemplatesManagerProps> = ({
 
                 if (att.type === 'audio') {
                   return (
-                    <div key={att.id} className="max-w-md bg-white rounded-lg p-3 shadow-xs border border-slate-200/60 text-xs text-slate-800 space-y-2">
-                      <div className="text-[10px] font-bold text-purple-800 uppercase tracking-wider">
+                    <div key={att.id} className="max-w-md bg-white dark:bg-slate-850 rounded-2xl p-3 shadow-xs border border-slate-200/60 dark:border-slate-800 text-xs text-slate-800 dark:text-slate-200 space-y-2">
+                      <div className="text-[10px] font-bold text-purple-800 dark:text-purple-400 uppercase tracking-wider">
                         Mensaje {bubbleNum} de {1 + attachments.length} (Nota de Voz MP3)
                       </div>
                       
                       {/* WhatsApp style audio player card */}
-                      <div className="flex items-center gap-3 p-2 bg-[#F0F2F5] rounded-xl border border-slate-200">
+                      <div className="flex items-center gap-3 p-2 bg-[#F0F2F5] dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700">
                         <button
                           type="button"
                           onClick={() => togglePlayAudioPreview(att.url, att.id)}
@@ -640,7 +842,7 @@ export const TemplatesManager: React.FC<TemplatesManagerProps> = ({
                               />
                             ))}
                           </div>
-                          <div className="flex items-center justify-between text-[10px] text-slate-500 font-mono">
+                          <div className="flex items-center justify-between text-[10px] text-slate-500 dark:text-slate-400 font-mono">
                             <span>0:00</span>
                             <span>{att.duration || '0:35'}</span>
                           </div>
@@ -648,11 +850,11 @@ export const TemplatesManager: React.FC<TemplatesManagerProps> = ({
                       </div>
 
                       {resolvedCaption && (
-                        <p className="text-xs text-slate-800 leading-snug">{resolvedCaption}</p>
+                        <p className="text-xs text-slate-800 dark:text-slate-200 leading-snug">{resolvedCaption}</p>
                       )}
                       <div className="text-right text-[10px] text-slate-400 font-mono flex items-center justify-end gap-1">
                         <span>11:45 AM</span>
-                        <span className="text-teal-600 font-bold">✓✓</span>
+                        <span className="text-teal-600 dark:text-teal-400 font-bold">✓✓</span>
                       </div>
                     </div>
                   );
@@ -680,4 +882,5 @@ export const TemplatesManager: React.FC<TemplatesManagerProps> = ({
     </div>
   );
 };
+
 

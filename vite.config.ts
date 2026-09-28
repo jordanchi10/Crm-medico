@@ -15,8 +15,8 @@ export default defineConfig(() => {
         includeAssets: ['apple-touch-icon.png', 'icon.svg', 'pwa-192x192.png', 'pwa-512x512.png'],
         manifest: {
           id: '/',
-          name: 'MedCRM Ecuador - CRM Especialistas Médicos',
-          short_name: 'MedCRM',
+          name: 'MédicoEC CRM - Especialistas Médicos Ecuador',
+          short_name: 'MédicoEC CRM',
           description: 'CRM de ventas médicas para especialistas en Ecuador (+593)',
           theme_color: '#0d9488',
           background_color: '#f8fafc',

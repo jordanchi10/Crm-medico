@@ -120,11 +120,11 @@ export const WhatsAppModal: React.FC<WhatsAppModalProps> = ({
   const specMeta = getSpecialtyMeta(lead.specialty);
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-0 sm:p-4">
-      <div className="bg-white sm:rounded-2xl max-w-3xl w-full shadow-2xl border border-slate-200 overflow-hidden flex flex-col h-full sm:h-auto sm:max-h-[92vh] animate-in fade-in zoom-in-95 duration-150">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-0 sm:p-4 animate-in fade-in duration-150">
+      <div className="bg-white dark:bg-slate-900 sm:rounded-2xl max-w-3xl w-full shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col h-full sm:h-auto sm:max-h-[92vh] animate-in fade-in zoom-in-95 duration-150">
         
         {/* Header */}
-        <div className="bg-emerald-600 px-4 sm:px-6 py-3.5 sm:py-4 text-white flex items-center justify-between shrink-0">
+        <div className="bg-emerald-600 dark:bg-emerald-700 px-4 sm:px-6 py-3.5 sm:py-4 text-white flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2.5">
             <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center shrink-0">
               <MessageCircle className="w-5 h-5 fill-white text-white" />
@@ -145,20 +145,20 @@ export const WhatsAppModal: React.FC<WhatsAppModalProps> = ({
         </div>
 
         {/* Doctor Summary Strip */}
-        <div className="px-4 sm:px-6 py-2.5 sm:py-3 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2 sm:gap-3 text-xs shrink-0">
+        <div className="px-4 sm:px-6 py-2.5 sm:py-3 bg-slate-50 dark:bg-slate-850 border-b border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-2 sm:gap-3 text-xs shrink-0">
           <div className="flex items-center gap-2">
-            <span className="font-bold text-slate-800 text-xs sm:text-sm">{lead.doctorName}</span>
+            <span className="font-bold text-slate-800 dark:text-slate-100 text-xs sm:text-sm">{lead.doctorName}</span>
             <span className={`px-2 py-0.5 rounded text-[10px] font-semibold border ${specMeta.bgLight} ${specMeta.color} ${specMeta.borderLight}`}>
               {lead.specialty}
             </span>
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-3 text-slate-500">
-            <div className="font-mono text-slate-700 font-semibold text-xs">
-              {lead.phone}
+          <div className="flex items-center gap-2 sm:gap-3 text-slate-500 dark:text-slate-400">
+            <div className="font-mono text-emerald-700 dark:text-emerald-400 font-bold text-xs">
+              {lead.phone} (+593)
             </div>
             <span>•</span>
-            <div className="flex items-center gap-0.5 font-bold text-emerald-700 text-xs">
+            <div className="flex items-center gap-0.5 font-bold text-slate-700 dark:text-slate-300 text-xs">
               <span>{formatCurrency(lead.estimatedValue)}</span>
             </div>
           </div>
@@ -168,15 +168,15 @@ export const WhatsAppModal: React.FC<WhatsAppModalProps> = ({
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
           
           {/* Template Selector & Mode Switch */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-slate-50 dark:bg-slate-850 p-3 rounded-xl border border-slate-200 dark:border-slate-800">
             <div className="flex-1">
-              <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+              <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
                 Plantilla Seleccionada
               </label>
               <select
                 value={selectedTemplateId}
                 onChange={(e) => handleTemplateChange(e.target.value)}
-                className="w-full text-xs bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-slate-800 font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1.5 text-slate-800 dark:text-slate-200 font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer"
               >
                 {templates.map((tpl) => {
                   const mediaCount = tpl.attachments?.length || 0;
@@ -190,17 +190,17 @@ export const WhatsAppModal: React.FC<WhatsAppModalProps> = ({
             </div>
 
             {/* Mode switch pills */}
-            <div className="flex items-center gap-1 bg-slate-200/80 p-1 rounded-xl self-start sm:self-end">
+            <div className="flex items-center gap-1 bg-slate-200/80 dark:bg-slate-800 p-1 rounded-xl self-start sm:self-end">
               <button
                 type="button"
                 onClick={() => setViewMode('sequential')}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
                   viewMode === 'sequential'
-                    ? 'bg-white text-emerald-800 shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900'
+                    ? 'bg-white dark:bg-slate-900 text-emerald-800 dark:text-emerald-300 shadow-xs'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
-                <Layers className="w-3.5 h-3.5 text-emerald-600" />
+                <Layers className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
                 <span>Secuencia Multimedia</span>
                 {hasAttachments && (
                   <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
@@ -212,8 +212,8 @@ export const WhatsAppModal: React.FC<WhatsAppModalProps> = ({
                 onClick={() => setViewMode('simple')}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
                   viewMode === 'simple'
-                    ? 'bg-white text-slate-800 shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900'
+                    ? 'bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 shadow-xs'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
                 <FileText className="w-3.5 h-3.5 text-slate-500" />
@@ -237,18 +237,18 @@ export const WhatsAppModal: React.FC<WhatsAppModalProps> = ({
             <div className="space-y-4">
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
                     Mensaje de Texto Directo (Editable)
                   </label>
                   <button
                     type="button"
                     onClick={handleCopy}
-                    className="text-xs text-slate-500 hover:text-slate-800 flex items-center gap-1 cursor-pointer"
+                    className="text-xs text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 flex items-center gap-1 cursor-pointer"
                   >
                     {copied ? (
                       <>
                         <Check className="w-3.5 h-3.5 text-emerald-600" />
-                        <span className="text-emerald-600 font-semibold">¡Copiado!</span>
+                        <span className="text-emerald-600 dark:text-emerald-400 font-semibold">¡Copiado!</span>
                       </>
                     ) : (
                       <>
@@ -263,13 +263,13 @@ export const WhatsAppModal: React.FC<WhatsAppModalProps> = ({
                   rows={9}
                   value={messageContent}
                   onChange={(e) => setMessageContent(e.target.value)}
-                  className="w-full text-xs leading-relaxed font-sans p-3.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white text-slate-800"
+                  className="w-full text-xs leading-relaxed font-sans p-3.5 rounded-xl border border-slate-300 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200"
                   placeholder="Escribe el mensaje..."
                 />
               </div>
 
               {/* Quick placeholder reminder */}
-              <div className="flex items-start gap-2 p-3 bg-emerald-50/60 rounded-xl border border-emerald-100 text-[11px] text-emerald-900 leading-snug">
+              <div className="flex items-start gap-2 p-3 bg-emerald-50/60 dark:bg-emerald-950/40 rounded-xl border border-emerald-100 dark:border-emerald-900/60 text-[11px] text-emerald-900 dark:text-emerald-300 leading-snug">
                 <Info className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
                 <span>
                   Al dar clic en <strong>"Abrir en WhatsApp"</strong> se abrirá el chat con el doctor y se registrará automáticamente en la bitácora de seguimiento del prospecto.
@@ -282,11 +282,11 @@ export const WhatsAppModal: React.FC<WhatsAppModalProps> = ({
 
         {/* Footer Actions (Only for Simple Mode since Sequential has its own step actions) */}
         {viewMode === 'simple' && (
-          <div className="p-3.5 sm:px-6 sm:py-3.5 bg-slate-50 border-t border-slate-200 flex items-center justify-between shrink-0" style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom, 0px))' }}>
+          <div className="p-3.5 sm:px-6 sm:py-3.5 bg-slate-50 dark:bg-slate-950 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between shrink-0" style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom, 0px))' }}>
             <button
               type="button"
               onClick={onClose}
-              className="px-3 sm:px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-800 transition-colors cursor-pointer"
+              className="px-3 sm:px-4 py-2 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition-colors cursor-pointer"
             >
               Cancelar
             </button>
