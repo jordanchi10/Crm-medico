@@ -20,6 +20,7 @@ import {
 import { MedicalLead } from '../types';
 import { buildPaymentReceiptData, buildReceiptWhatsAppText } from '../utils/receiptUtils';
 import { formatEcuadorPhoneForWhatsApp } from '../data/ecuadorData';
+import { openExternalLink } from '../utils/navigation';
 import confetti from 'canvas-confetti';
 
 interface PaymentReceiptModalProps {
@@ -56,7 +57,7 @@ export const PaymentReceiptModal: React.FC<PaymentReceiptModalProps> = ({
   const handleOpenWhatsAppDirect = () => {
     if (cleanWhatsAppNumber) {
       const url = `https://wa.me/${cleanWhatsAppNumber}?text=${encodeURIComponent(whatsappText)}`;
-      window.open(url, '_blank');
+      openExternalLink(url);
       if (onLogActivity) {
         onLogActivity(lead.id, `Comprobante de pago ${receipt.receiptNumber} enviado por WhatsApp directo.`);
       }

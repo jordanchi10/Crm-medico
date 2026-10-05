@@ -8,6 +8,16 @@ import { formatEcuadorPhoneForWhatsApp } from '../data/ecuadorData';
 const LEADS_STORAGE_KEY = 'medcrm_leads_v1';
 const TEMPLATES_STORAGE_KEY = 'medcrm_templates_v4';
 
+let actCounter = 0;
+
+/**
+ * Generates guaranteed collision-free unique IDs for activities and history logs
+ */
+export function generateActivityId(prefix = 'act'): string {
+  actCounter = (actCounter + 1) % 1000000;
+  return `${prefix}-${Date.now()}-${actCounter}-${Math.random().toString(36).slice(2, 7)}`;
+}
+
 export function loadLeads(): MedicalLead[] {
   try {
     const raw = localStorage.getItem(LEADS_STORAGE_KEY);
@@ -139,13 +149,40 @@ export function loadLeads(): MedicalLead[] {
         modified = true;
       }
 
+      // 7. Sanitize & Deduplicate History Activity IDs
+      if (Array.isArray(updatedLead.history)) {
+        const seenIds = new Set<string>();
+        updatedLead.history = updatedLead.history.map((act, actIdx) => {
+          if (!act.id || seenIds.has(act.id)) {
+            modified = true;
+            const uniqueId = generateActivityId(`act-${idx}-${actIdx}`);
+            seenIds.add(uniqueId);
+            return { ...act, id: uniqueId };
+          }
+          seenIds.add(act.id);
+          return act;
+        });
+      }
+
       return updatedLead;
     });
 
+    // 8. Sanitize & Deduplicate Lead IDs across the entire dataset
+    const seenLeadIds = new Set<string>();
+    const fullyDeduplicated = migrated.map((lead, idx) => {
+      let uniqueId = lead.id;
+      if (!uniqueId || seenLeadIds.has(uniqueId)) {
+        modified = true;
+        uniqueId = `lead-${Date.now()}-${idx}-${Math.random().toString(36).slice(2, 7)}`;
+      }
+      seenLeadIds.add(uniqueId);
+      return { ...lead, id: uniqueId };
+    });
+
     if (modified) {
-      saveLeads(migrated);
+      saveLeads(fullyDeduplicated);
     }
-    return migrated;
+    return fullyDeduplicated;
   } catch (e) {
     console.error('Error loading leads from storage', e);
     return INITIAL_LEADS;
@@ -154,7 +191,27 @@ export function loadLeads(): MedicalLead[] {
 
 export function saveLeads(leads: MedicalLead[]): void {
   try {
-    localStorage.setItem(LEADS_STORAGE_KEY, JSON.stringify(leads));
+    const seenLeadIds = new Set<string>();
+    const sanitized = leads.map((lead, idx) => {
+      let uniqueLeadId = lead.id;
+      if (!uniqueLeadId || seenLeadIds.has(uniqueLeadId)) {
+        uniqueLeadId = `lead-${Date.now()}-${idx}-${Math.random().toString(36).slice(2, 7)}`;
+      }
+      seenLeadIds.add(uniqueLeadId);
+
+      if (!Array.isArray(lead.history)) return { ...lead, id: uniqueLeadId };
+      const seenActIds = new Set<string>();
+      const cleanHistory = lead.history.map((act, actIdx) => {
+        let uniqueActId = act.id;
+        if (!uniqueActId || seenActIds.has(uniqueActId)) {
+          uniqueActId = generateActivityId(`act-${idx}-${actIdx}`);
+        }
+        seenActIds.add(uniqueActId);
+        return { ...act, id: uniqueActId };
+      });
+      return { ...lead, id: uniqueLeadId, history: cleanHistory };
+    });
+    localStorage.setItem(LEADS_STORAGE_KEY, JSON.stringify(sanitized));
   } catch (e) {
     console.error('Error saving leads to storage', e);
   }

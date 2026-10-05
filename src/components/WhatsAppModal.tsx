@@ -19,6 +19,7 @@ import { getSpecialtyMeta } from '../data/specialties';
 import { replaceTemplatePlaceholders } from '../data/whatsappTemplates';
 import { formatCurrency } from '../utils/storage';
 import { formatEcuadorPhoneForWhatsApp } from '../data/ecuadorData';
+import { openExternalLink } from '../utils/navigation';
 import { WhatsAppSequenceAssistant } from './WhatsAppSequenceAssistant';
 
 interface WhatsAppModalProps {
@@ -101,7 +102,7 @@ export const WhatsAppModal: React.FC<WhatsAppModalProps> = ({
     const waUrl = `https://wa.me/${targetPhone}?text=${encoded}`;
 
     // Open WhatsApp
-    window.open(waUrl, '_blank');
+    openExternalLink(waUrl);
 
     // Automatically log this activity in the lead's history
     const tpl = templates.find((t) => t.id === selectedTemplateId);

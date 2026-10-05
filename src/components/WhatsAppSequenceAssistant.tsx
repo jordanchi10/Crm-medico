@@ -23,6 +23,7 @@ import { replaceTemplatePlaceholders } from '../data/whatsappTemplates';
 import { formatCurrency } from '../utils/storage';
 import { formatEcuadorPhoneForWhatsApp } from '../data/ecuadorData';
 import { copyImageToClipboard, downloadMediaAttachment } from '../utils/mediaDemoAssets';
+import { openExternalLink } from '../utils/navigation';
 import confetti from 'canvas-confetti';
 
 interface WhatsAppSequenceAssistantProps {
@@ -119,7 +120,7 @@ export const WhatsAppSequenceAssistant: React.FC<WhatsAppSequenceAssistantProps>
   const openWhatsAppWithText = (text: string) => {
     const encoded = encodeURIComponent(text);
     const url = `https://wa.me/${targetPhone}?text=${encoded}`;
-    window.open(url, '_blank');
+    openExternalLink(url);
   };
 
   const markStepCompleted = (index: number) => {
@@ -148,7 +149,7 @@ export const WhatsAppSequenceAssistant: React.FC<WhatsAppSequenceAssistantProps>
       if (currentStep.content) {
         openWhatsAppWithText(currentStep.content);
       } else {
-        window.open(`https://wa.me/${targetPhone}`, '_blank');
+        openExternalLink(`https://wa.me/${targetPhone}`);
       }
       markStepCompleted(currentStepIndex);
     } else if (currentStep.type === 'pdf' && currentStep.media) {
@@ -157,7 +158,7 @@ export const WhatsAppSequenceAssistant: React.FC<WhatsAppSequenceAssistantProps>
       if (currentStep.content) {
         openWhatsAppWithText(currentStep.content);
       } else {
-        window.open(`https://wa.me/${targetPhone}`, '_blank');
+        openExternalLink(`https://wa.me/${targetPhone}`);
       }
       markStepCompleted(currentStepIndex);
     } else if (currentStep.type === 'audio' && currentStep.media) {
@@ -166,7 +167,7 @@ export const WhatsAppSequenceAssistant: React.FC<WhatsAppSequenceAssistantProps>
       if (currentStep.content) {
         openWhatsAppWithText(currentStep.content);
       } else {
-        window.open(`https://wa.me/${targetPhone}`, '_blank');
+        openExternalLink(`https://wa.me/${targetPhone}`);
       }
       markStepCompleted(currentStepIndex);
     }

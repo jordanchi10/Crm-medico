@@ -32,6 +32,12 @@ export const ServicesManagerModal: React.FC<ServicesManagerModalProps> = ({
 }) => {
   const [isCreating, setIsCreating] = useState(false);
   const [editingServiceId, setEditingServiceId] = useState<string | null>(null);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [confirmAction, setConfirmAction] = useState<{
+    title: string;
+    message: string;
+    onConfirm: () => void;
+  } | null>(null);
 
   // Form states
   const [name, setName] = useState('');
@@ -96,21 +102,32 @@ export const ServicesManagerModal: React.FC<ServicesManagerModalProps> = ({
   const handleDelete = (serviceId: string) => {
     const srv = services.find(s => s.id === serviceId);
     if (srv?.isBase) {
-      alert('Los 2 servicios de base (1 año en $99 y 2 años en $150) no se pueden eliminar.');
+      setToastMessage('Los 2 servicios de base (1 año en $99 y 2 años en $150) no se pueden eliminar.');
+      setTimeout(() => setToastMessage(null), 3500);
       return;
     }
-    if (window.confirm(`¿Deseas eliminar el servicio "${srv?.name}"?`)) {
-      const updatedList = services.filter(s => s.id !== serviceId);
-      saveServices(updatedList);
-      onUpdateServices(updatedList);
-    }
+    setConfirmAction({
+      title: '¿Eliminar Servicio?',
+      message: `¿Deseas eliminar el servicio "${srv?.name || 'médico'}" del catálogo comercial?`,
+      onConfirm: () => {
+        const updatedList = services.filter(s => s.id !== serviceId);
+        saveServices(updatedList);
+        onUpdateServices(updatedList);
+        setConfirmAction(null);
+      }
+    });
   };
 
   const handleResetToDefaults = () => {
-    if (window.confirm('¿Restablecer el catálogo a los 2 servicios de base ($99 y $150)?')) {
-      const reset = resetServicesToDefault();
-      onUpdateServices(reset);
-    }
+    setConfirmAction({
+      title: '¿Restablecer Servicios Base?',
+      message: '¿Restablecer el catálogo a los 2 servicios oficiales de base ($99 y $150 USD)?',
+      onConfirm: () => {
+        const reset = resetServicesToDefault();
+        onUpdateServices(reset);
+        setConfirmAction(null);
+      }
+    });
   };
 
   // Count leads per service
@@ -175,6 +192,43 @@ export const ServicesManagerModal: React.FC<ServicesManagerModalProps> = ({
         {/* Scrollable Body */}
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
           
+          {/* Toast Notification Banner */}
+          {toastMessage && (
+            <div className="p-3 bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800 text-amber-900 dark:text-amber-200 text-xs rounded-xl flex items-center gap-2 animate-in fade-in">
+              <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+              <span>{toastMessage}</span>
+            </div>
+          )}
+
+          {/* In-Modal Confirmation Banner */}
+          {confirmAction && (
+            <div className="p-4 bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-800 rounded-2xl space-y-3 animate-in fade-in">
+              <div className="flex items-start gap-2.5">
+                <AlertCircle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+                <div>
+                  <h4 className="text-sm font-bold text-rose-950 dark:text-rose-100">{confirmAction.title}</h4>
+                  <p className="text-xs text-rose-800 dark:text-rose-300 mt-0.5">{confirmAction.message}</p>
+                </div>
+              </div>
+              <div className="flex items-center justify-end gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={() => setConfirmAction(null)}
+                  className="px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800 cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  onClick={confirmAction.onConfirm}
+                  className="px-3.5 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shadow-2xs cursor-pointer"
+                >
+                  Confirmar
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Create or Edit Form */}
           {isCreating && (
             <form onSubmit={handleSave} className="bg-teal-50/50 dark:bg-teal-950/20 border-2 border-teal-200 dark:border-teal-800/80 rounded-2xl p-4 sm:p-5 space-y-4 animate-in fade-in duration-150">

@@ -129,13 +129,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   return (
     <aside 
-      className="hidden md:flex flex-col w-56 lg:w-60 shrink-0 bg-white dark:bg-slate-900 border-r border-slate-200/90 dark:border-slate-800 h-screen sticky top-0 z-30 shadow-[2px_0_12px_rgba(0,0,0,0.03)] dark:shadow-[2px_0_12px_rgba(0,0,0,0.2)] select-none transition-colors duration-200"
+      className="hidden md:flex flex-col w-60 lg:w-64 shrink-0 bg-white dark:bg-slate-900 border-r border-slate-200/90 dark:border-slate-800 h-screen sticky top-0 z-30 shadow-[2px_0_12px_rgba(0,0,0,0.03)] dark:shadow-[2px_0_12px_rgba(0,0,0,0.2)] select-none transition-colors duration-200"
       aria-label="Barra de Navegación Lateral"
     >
       {/* Brand & Logo Header */}
       <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0 bg-slate-50/60 dark:bg-slate-900/60">
         <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-red-600 via-rose-500 to-red-400 flex items-center justify-center text-white shadow-md shadow-red-500/25 shrink-0 border border-white/20">
+          <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-red-600 via-rose-500 to-red-400 flex items-center justify-center text-white shadow-md shadow-red-500/25 shrink-0 border border-white/20">
             <Stethoscope className="w-5 h-5" />
           </div>
           <div>
@@ -150,7 +150,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 🇪🇨
               </span>
             </div>
-            <p className="text-[10px] text-slate-400 dark:text-slate-400 font-medium leading-none mt-0.5">
+            <p className="text-xs text-slate-600 dark:text-slate-300 font-semibold leading-none mt-1">
               Gestión Médica Pro
             </p>
           </div>
@@ -158,42 +158,42 @@ export const Sidebar: React.FC<SidebarProps> = ({
       </div>
 
       {/* Main Action: Primary Button "+ Nuevo Médico" */}
-      <div className="p-3 shrink-0">
+      <div className="p-3.5 shrink-0">
         <button
           id="sidebar-btn-new-lead"
           onClick={onNewLeadClick}
-          className="w-full flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 active:from-teal-800 active:to-emerald-800 text-white text-xs font-bold shadow-sm shadow-teal-600/30 hover:shadow-md transition-all cursor-pointer hover:-translate-y-0.5 active:scale-98"
+          className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 active:from-teal-800 active:to-emerald-800 text-white text-xs sm:text-sm font-bold shadow-sm shadow-teal-600/30 hover:shadow-md transition-all cursor-pointer hover:-translate-y-0.5 active:scale-98"
         >
           <UserPlus className="w-4 h-4 shrink-0" />
-          <span>Nuevo Médico</span>
+          <span>+ Nuevo Médico</span>
         </button>
       </div>
 
       {/* Navigation Group (Clean 4 Core Pillars) */}
-      <div className="flex-1 overflow-y-auto px-3 py-1 space-y-1 scrollbar-thin">
-        <div className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider px-2 py-1">
+      <div className="flex-1 overflow-y-auto px-3.5 py-1.5 space-y-2 scrollbar-thin">
+        <div className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider px-2 py-1">
           Espacios de Trabajo
         </div>
 
         {navItems.map((item) => {
           const isActive = currentTab === item.id;
           return (
-            <div key={item.id} className="space-y-0.5">
+            <div key={item.id} className="space-y-1">
               <button
                 id={`sidebar-nav-${item.id}`}
                 onClick={() => setCurrentTab(item.id)}
-                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                className={`w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
                   isActive
                     ? 'bg-teal-50 dark:bg-teal-950/40 text-teal-950 dark:text-teal-200 border border-teal-200/80 dark:border-teal-800/60 shadow-2xs translate-x-0.5'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50/80 dark:hover:bg-slate-800/60 border border-transparent'
+                    : 'text-slate-800 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100/90 dark:hover:bg-slate-800/80 border border-transparent'
                 }`}
               >
                 <div className="flex items-center gap-2.5">
-                  <div className={`p-0.5 rounded-lg transition-transform ${isActive ? 'scale-105' : 'opacity-85'}`}>
+                  <div className={`p-0.5 rounded-lg transition-transform ${isActive ? 'scale-105' : 'opacity-90'}`}>
                     {item.icon}
                   </div>
                   <div className="text-left">
-                    <div className={`leading-none ${isActive ? 'font-black text-teal-900 dark:text-teal-200' : 'font-semibold'}`}>
+                    <div className={`leading-tight ${isActive ? 'font-black text-teal-900 dark:text-teal-200' : 'font-semibold'}`}>
                       {item.label}
                     </div>
                   </div>
@@ -212,7 +212,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
               {/* Quiet Submenu for Pipeline Workspace */}
               {item.id === 'pipeline' && isActive && (
-                <div className="pl-8 pr-1 py-1 space-y-0.5 animate-in fade-in duration-100">
+                <div className="pl-9 pr-1 py-1 space-y-1 animate-in fade-in duration-100">
                   {[
                     { id: 'kanban' as const, label: 'Tablero Kanban' },
                     { id: 'table' as const, label: 'Directorio' },
@@ -227,15 +227,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
                         onClick={() => {
                           if (onPipelineSubViewChange) onPipelineSubViewChange(sub.id);
                         }}
-                        className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-colors cursor-pointer ${
+                        className={`w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
                           isSubActive
-                            ? 'text-teal-900 dark:text-teal-200 font-bold bg-teal-100/60 dark:bg-teal-900/40'
-                            : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100/60 dark:hover:bg-slate-800/60'
+                            ? 'text-teal-900 dark:text-teal-200 font-bold bg-teal-100/70 dark:bg-teal-900/50'
+                            : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
                         }`}
                       >
                         <span>{sub.label}</span>
                         {sub.badge && (
-                          <span className="text-[9px] font-bold px-1 rounded-full bg-emerald-100 dark:bg-emerald-900/60 text-emerald-800 dark:text-emerald-300">
+                          <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-emerald-100 dark:bg-emerald-900/60 text-emerald-800 dark:text-emerald-300">
                             {sub.badge}
                           </span>
                         )}
@@ -247,7 +247,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
               {/* Quiet Submenu for WhatsApp Workspace */}
               {item.id === 'whatsapp' && isActive && (
-                <div className="pl-8 pr-1 py-1 space-y-0.5 animate-in fade-in duration-100">
+                <div className="pl-9 pr-1 py-1 space-y-1 animate-in fade-in duration-100">
                   {[
                     { id: 'cadence' as const, label: 'Cadencias (6 Pasos)' },
                     { id: 'templates' as const, label: 'Biblioteca Plantillas' }
@@ -260,10 +260,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
                         onClick={() => {
                           if (onWhatsAppSubViewChange) onWhatsAppSubViewChange(sub.id);
                         }}
-                        className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-colors cursor-pointer ${
+                        className={`w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
                           isSubActive
-                            ? 'text-purple-900 dark:text-purple-200 font-bold bg-purple-100/60 dark:bg-purple-900/40'
-                            : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100/60 dark:hover:bg-slate-800/60'
+                            ? 'text-purple-900 dark:text-purple-200 font-bold bg-purple-100/70 dark:bg-purple-900/50'
+                            : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
                         }`}
                       >
                         <span>{sub.label}</span>
@@ -280,21 +280,21 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <button
           id="sidebar-nav-services"
           onClick={onOpenServicesModal}
-          className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold text-teal-800 dark:text-emerald-300 bg-emerald-50/60 dark:bg-emerald-950/40 hover:bg-emerald-100/70 dark:hover:bg-emerald-900/50 border border-emerald-200/70 dark:border-emerald-800/60 transition-all cursor-pointer shadow-2xs hover:translate-x-0.5 mt-2"
+          className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-teal-900 dark:text-emerald-300 bg-emerald-50/70 dark:bg-emerald-950/40 hover:bg-emerald-100/80 dark:hover:bg-emerald-900/60 border border-emerald-200/80 dark:border-emerald-800/70 transition-all cursor-pointer shadow-2xs hover:translate-x-0.5 mt-2"
           title="Catálogo de Planes: 1 año $99 y 2 años $150"
         >
           <div className="flex items-center gap-2.5">
             <ThreeDServicesIcon size={20} />
             <span className="font-bold text-emerald-950 dark:text-emerald-200">Planes / Precios</span>
           </div>
-          <span className="text-[10px] font-black bg-emerald-600 dark:bg-emerald-500 text-white px-1.5 py-0.2 rounded-md shadow-2xs">
+          <span className="text-[10px] font-black bg-emerald-600 dark:bg-emerald-500 text-white px-2 py-0.5 rounded-md shadow-2xs">
             $99/$150
           </span>
         </button>
 
         {/* Quick Tools & Management Section */}
-        <div className="pt-3 mt-3 border-t border-slate-100 dark:border-slate-800">
-          <div className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider px-2 py-1">
+        <div className="pt-3 mt-3 border-t border-slate-100 dark:border-slate-800 space-y-1">
+          <div className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider px-2 py-1">
             Herramientas
           </div>
 
@@ -302,9 +302,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {onOpenBulkModal && (
             <button
               onClick={onOpenBulkModal}
-              className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+              className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
             >
-              <FileSpreadsheet className="w-4 h-4 text-slate-400 dark:text-slate-500" />
+              <FileSpreadsheet className="w-4 h-4 text-slate-600 dark:text-slate-400" />
               <span>Carga Masiva Excel</span>
             </button>
           )}
@@ -312,19 +312,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {/* Local Hosting / Offline Mode */}
           <button
             onClick={onOpenLocalHostingModal}
-            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+            className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
           >
-            <HardDrive className="w-4 h-4 text-slate-400 dark:text-slate-500" />
+            <HardDrive className="w-4 h-4 text-slate-600 dark:text-slate-400" />
             <span>Modo Offline / PWA</span>
           </button>
 
           {/* Quick Manual Snapshot Save */}
           <button
             onClick={handleManualSave}
-            className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer border ${
+            className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer border ${
               savedFeedback
                 ? 'bg-emerald-100/90 dark:bg-emerald-950/60 text-emerald-900 dark:text-emerald-200 border-emerald-300 dark:border-emerald-700 shadow-xs'
-                : 'bg-teal-50/90 dark:bg-slate-800 hover:bg-teal-100/90 dark:hover:bg-slate-750 text-teal-800 dark:text-teal-300 border-teal-200/80 dark:border-slate-700 shadow-2xs hover:translate-x-0.5'
+                : 'bg-teal-50/90 dark:bg-slate-800 hover:bg-teal-100/90 dark:hover:bg-slate-750 text-teal-900 dark:text-teal-200 border-teal-200/80 dark:border-slate-700 shadow-2xs hover:translate-x-0.5'
             }`}
             title="Guardar instantánea del CRM en memoria local"
           >
@@ -338,7 +338,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               >
                 <Save className="w-3.5 h-3.5" />
               </div>
-              <span className="font-semibold text-teal-950 dark:text-slate-200">Guardar Snapshot</span>
+              <span className="font-semibold text-teal-950 dark:text-slate-100">Guardar Snapshot</span>
             </div>
             {savedFeedback ? (
               <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-200/60 dark:bg-emerald-900/60 px-1.5 py-0.5 rounded animate-in fade-in">
@@ -346,7 +346,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <span>¡Guardado!</span>
               </span>
             ) : (
-              <span className="text-[10px] font-bold text-teal-700 dark:text-teal-300 bg-teal-100/80 dark:bg-teal-950/60 px-1.5 py-0.5 rounded border border-teal-200/60 dark:border-teal-800/60">
+              <span className="text-[10px] font-bold text-teal-800 dark:text-teal-200 bg-teal-100/80 dark:bg-teal-950/60 px-1.5 py-0.5 rounded border border-teal-200/60 dark:border-teal-800/60">
                 Local
               </span>
             )}
@@ -355,34 +355,34 @@ export const Sidebar: React.FC<SidebarProps> = ({
       </div>
 
       {/* Footer KPI & Dark Mode Toggle Switch Card */}
-      <div className="p-3 border-t border-slate-100 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-900/60 shrink-0 space-y-2">
+      <div className="p-3.5 border-t border-slate-100 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-900/60 shrink-0 space-y-2.5">
         {/* Dark Mode Quick Switcher */}
         {onToggleDarkMode && (
           <button
             onClick={onToggleDarkMode}
-            className="w-full flex items-center justify-between p-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:border-teal-400 dark:hover:border-teal-600 transition-all cursor-pointer shadow-2xs"
+            className="w-full flex items-center justify-between p-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-800 dark:text-slate-100 hover:border-teal-400 dark:hover:border-teal-500 transition-all cursor-pointer shadow-2xs"
           >
             <div className="flex items-center gap-2">
               {isDarkMode ? (
                 <Sun className="w-4 h-4 text-amber-400" />
               ) : (
-                <Moon className="w-4 h-4 text-slate-500" />
+                <Moon className="w-4 h-4 text-slate-600" />
               )}
               <span>{isDarkMode ? 'Modo Oscuro' : 'Modo Claro'}</span>
             </div>
-            <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-slate-700 font-mono text-slate-600 dark:text-slate-300">
+            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-slate-700 font-mono text-slate-700 dark:text-slate-200">
               {isDarkMode ? 'ON' : 'OFF'}
             </span>
           </button>
         )}
 
-        <div className="p-2.5 rounded-xl bg-white dark:bg-slate-800/80 border border-slate-200/90 dark:border-slate-700/80 shadow-2xs space-y-1">
+        <div className="p-3 rounded-xl bg-white dark:bg-slate-800/80 border border-slate-200/90 dark:border-slate-700/80 shadow-2xs space-y-1.5">
           <div className="flex items-center justify-between text-xs">
-            <span className="text-slate-500 dark:text-slate-400 font-medium">Médicos:</span>
-            <span className="font-bold text-slate-800 dark:text-slate-200">{totalLeads}</span>
+            <span className="text-slate-700 dark:text-slate-300 font-semibold">Médicos:</span>
+            <span className="font-bold text-slate-900 dark:text-white">{totalLeads}</span>
           </div>
           <div className="flex items-center justify-between text-xs">
-            <span className="text-slate-500 dark:text-slate-400 font-medium">Recaudado:</span>
+            <span className="text-slate-700 dark:text-slate-300 font-semibold">Recaudado:</span>
             <span className="font-black text-emerald-700 dark:text-emerald-400">{formatCurrency(wonRevenue)}</span>
           </div>
         </div>

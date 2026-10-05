@@ -51,16 +51,16 @@ export const WhatsAppWorkspace: React.FC<WhatsAppWorkspaceProps> = ({
             <button
               type="button"
               onClick={() => onSubViewChange('cadence')}
-              className={`flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap touch-manipulation ${
+              className={`flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap touch-manipulation min-h-[40px] ${
                 subView === 'cadence'
-                  ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-2xs'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-700/50'
+                  ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs border border-slate-200/70 dark:border-slate-750'
+                  : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-700/50'
               }`}
             >
-              <Sparkles className={`w-3.5 h-3.5 ${subView === 'cadence' ? 'text-purple-600 dark:text-purple-400' : 'text-slate-400'}`} />
+              <Sparkles className={`w-4 h-4 ${subView === 'cadence' ? 'text-purple-600 dark:text-purple-400' : 'text-slate-600 dark:text-slate-300'}`} />
               <span>Cadencias de Seguimiento</span>
-              <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full ${
-                subView === 'cadence' ? 'bg-purple-50 dark:bg-purple-950/70 text-purple-700 dark:text-purple-300 font-bold' : 'text-slate-400 dark:text-slate-500'
+              <span className={`text-xs font-mono px-2 py-0.5 rounded-full font-bold ${
+                subView === 'cadence' ? 'bg-purple-50 dark:bg-purple-950/70 text-purple-700 dark:text-purple-300' : 'text-slate-700 dark:text-slate-300 bg-slate-200/90 dark:bg-slate-700'
               }`}>
                 {activeInCadence} en curso
               </span>
@@ -70,23 +70,23 @@ export const WhatsAppWorkspace: React.FC<WhatsAppWorkspaceProps> = ({
             <button
               type="button"
               onClick={() => onSubViewChange('templates')}
-              className={`flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap touch-manipulation ${
+              className={`flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap touch-manipulation min-h-[40px] ${
                 subView === 'templates'
-                  ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-2xs'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-700/50'
+                  ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs border border-slate-200/70 dark:border-slate-750'
+                  : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-700/50'
               }`}
             >
-              <MessageSquareText className={`w-3.5 h-3.5 ${subView === 'templates' ? 'text-teal-600 dark:text-teal-400' : 'text-slate-400'}`} />
+              <MessageSquareText className={`w-4 h-4 ${subView === 'templates' ? 'text-teal-600 dark:text-teal-400' : 'text-slate-600 dark:text-slate-300'}`} />
               <span>Plantillas de Mensajes</span>
-              <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full ${
-                subView === 'templates' ? 'bg-teal-50 dark:bg-teal-950/70 text-teal-700 dark:text-teal-300 font-bold' : 'text-slate-400 dark:text-slate-500'
+              <span className={`text-xs font-mono px-2 py-0.5 rounded-full font-bold ${
+                subView === 'templates' ? 'bg-teal-50 dark:bg-teal-950/70 text-teal-700 dark:text-teal-300' : 'text-slate-700 dark:text-slate-300 bg-slate-200/90 dark:bg-slate-700'
               }`}>
                 {templates.length}
               </span>
             </button>
           </div>
 
-          <div className="hidden md:flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+          <div className="hidden md:flex items-center gap-2 text-xs text-slate-600 dark:text-slate-300 font-medium">
             <span>Canal activo: WhatsApp Web / Desktop (+593 Ecuador)</span>
           </div>
 

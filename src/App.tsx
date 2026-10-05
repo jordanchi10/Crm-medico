@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import confetti from 'canvas-confetti';
 import { AppTab, MedicalLead, StageId, WhatsAppTemplate, MedicalService, PipelineSubView, WhatsAppSubView } from './types';
 import { 
@@ -10,7 +10,8 @@ import {
   resetTemplatesToDefault,
   performDailyAutoBackup,
   PlatformConfig,
-  savePlatformConfig
+  savePlatformConfig,
+  generateActivityId
 } from './utils/storage';
 import { loadServices, saveServices } from './data/servicesData';
 import { STAGES } from './data/stages';
@@ -27,9 +28,19 @@ import { LocalHostingModal } from './components/LocalHostingModal';
 import { ServicesManagerModal } from './components/ServicesManagerModal';
 import { BulkLeadsModal } from './components/BulkLeadsModal';
 import { NotificationCenter } from './components/NotificationCenter';
-import { getOverdueLeads, notifyStaleLeadsBrowserAlert } from './utils/notificationService';
+import { 
+  getOverdueLeads, 
+  getImmediateAttentionLeads,
+  notifyStaleLeadsBrowserAlert,
+  notifyImmediateAttentionLeads,
+  notifyLeadStageChange,
+  loadNotificationPreferences,
+  saveNotificationPreferences,
+  NotificationPreferences
+} from './utils/notificationService';
 import { MobileAppInstallBanner } from './components/MobileAppInstallBanner';
 import { OfflineIndicator } from './components/OfflineIndicator';
+import { DeleteConfirmationModal } from './components/DeleteConfirmationModal';
 
 export default function App() {
   const [leads, setLeads] = useState<MedicalLead[]>(() => loadLeads());
@@ -99,8 +110,24 @@ export default function App() {
   const [isServicesModalOpen, setIsServicesModalOpen] = useState(false);
   const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
   const [isNotificationCenterOpen, setIsNotificationCenterOpen] = useState(false);
-  const [thresholdHours, setThresholdHours] = useState(48);
-  const [isSoundEnabled, setIsSoundEnabled] = useState(true);
+  const [confirmDialog, setConfirmDialog] = useState<{
+    isOpen: boolean;
+    title: string;
+    description: string;
+    warningText?: string;
+    confirmLabel?: string;
+    icon?: 'trash' | 'reset';
+    onConfirm: () => void;
+  } | null>(null);
+  // Notification Preferences & Settings
+  const [notificationPrefs, setNotificationPrefs] = useState<NotificationPreferences>(() => loadNotificationPreferences());
+  const thresholdHours = notificationPrefs.thresholdHours;
+  const isSoundEnabled = notificationPrefs.soundEnabled;
+
+  const handleUpdateNotificationPrefs = (newPrefs: Partial<NotificationPreferences>) => {
+    const updated = saveNotificationPreferences(newPrefs);
+    setNotificationPrefs(updated);
+  };
 
   const handleOpenReceipt = (lead: MedicalLead) => {
     setLeadForReceipt(lead);
@@ -108,21 +135,42 @@ export default function App() {
   };
 
   // Compute overdue leads (+48h without contact)
-  const overdueLeads = getOverdueLeads(leads, thresholdHours);
+  const overdueLeads = useMemo(
+    () => getOverdueLeads(leads, thresholdHours),
+    [leads, thresholdHours]
+  );
 
-  // Check and trigger background browser notification if overdue
+  // Compute leads requiring immediate attention (today's demos/appointments, past due follow-ups, urgent priority leads)
+  const immediateAttentionLeads = useMemo(
+    () => getImmediateAttentionLeads(leads, thresholdHours),
+    [leads, thresholdHours]
+  );
+
+  // Total alert badge count for sidebar and navbar
+  const totalAlertsCount = immediateAttentionLeads.length > 0 ? immediateAttentionLeads.length : overdueLeads.length;
+
+  // Check and trigger background browser push notifications for immediate attention and overdue leads
   useEffect(() => {
-    if (overdueLeads.length > 0) {
-      notifyStaleLeadsBrowserAlert(overdueLeads);
+    if (immediateAttentionLeads.length > 0) {
+      notifyImmediateAttentionLeads(immediateAttentionLeads, false, (l) => handleOpenEditLead(l));
+    } else if (overdueLeads.length > 0) {
+      notifyStaleLeadsBrowserAlert(overdueLeads, false, (l) => handleOpenEditLead(l));
     }
+
     const interval = setInterval(() => {
-      const stale = getOverdueLeads(leads, thresholdHours);
-      if (stale.length > 0) {
-        notifyStaleLeadsBrowserAlert(stale);
+      const urgent = getImmediateAttentionLeads(leads, thresholdHours);
+      if (urgent.length > 0) {
+        notifyImmediateAttentionLeads(urgent, false, (l) => handleOpenEditLead(l));
+      } else {
+        const stale = getOverdueLeads(leads, thresholdHours);
+        if (stale.length > 0) {
+          notifyStaleLeadsBrowserAlert(stale, false, (l) => handleOpenEditLead(l));
+        }
       }
-    }, 10 * 60 * 1000);
+    }, 10 * 60 * 1000); // Check every 10 minutes
+
     return () => clearInterval(interval);
-  }, [leads.length, thresholdHours]);
+  }, [leads, thresholdHours]);
 
   // Sync leads to storage whenever leads state changes
   useEffect(() => {
@@ -170,46 +218,48 @@ export default function App() {
     });
   };
 
-  // Stage change handler
+  // Stage change handler with native browser push notification
   const handleStageChange = (leadId: string, newStage: StageId) => {
+    const existingLead = leads.find((l) => l.id === leadId);
+    if (!existingLead) return;
+
+    const previousStage = existingLead.stage;
     const stageConfig = STAGES.find((s) => s.id === newStage);
     const now = new Date();
     const dateStr = now.toISOString().replace('T', ' ').slice(0, 16);
 
-    setLeads((prev) =>
-      prev.map((lead) => {
-        if (lead.id === leadId) {
-          const wasWon = lead.stage === 'ganado';
-          const isNowWon = newStage === 'ganado';
+    const updatedLead: MedicalLead = {
+      ...existingLead,
+      stage: newStage,
+      lastContactDate: now.toISOString().split('T')[0],
+      history: [
+        {
+          id: generateActivityId('act-etapa'),
+          date: dateStr,
+          type: 'etapa' as const,
+          description: `Movido a la etapa: ${stageConfig?.name || newStage}`
+        },
+        ...(existingLead.history || [])
+      ]
+    };
 
-          if (!wasWon && isNowWon) {
-            fireConfetti();
-          }
+    setLeads((prev) => prev.map((lead) => (lead.id === leadId ? updatedLead : lead)));
 
-          const newHistory = [
-            {
-              id: `act-${Date.now()}`,
-              date: dateStr,
-              type: 'etapa' as const,
-              description: `Movido a la etapa: ${stageConfig?.name || newStage}`
-            },
-            ...(lead.history || [])
-          ];
-
-          return {
-            ...lead,
-            stage: newStage,
-            lastContactDate: now.toISOString().split('T')[0],
-            history: newHistory
-          };
-        }
-        return lead;
-      })
-    );
+    if (previousStage !== newStage) {
+      if (newStage === 'ganado') {
+        fireConfetti();
+      }
+      // Send browser push notification with custom sound and metadata
+      notifyLeadStageChange(updatedLead, previousStage, newStage, (l) => handleOpenEditLead(l));
+    }
   };
 
-  // Save or update lead
+  // Save or update lead with stage change alert detection
   const handleSaveLead = (savedLead: MedicalLead) => {
+    const existing = leads.find((l) => l.id === savedLead.id);
+    const isNew = !existing;
+    const previousStage = existing?.stage;
+
     setLeads((prev) => {
       const exists = prev.some((l) => l.id === savedLead.id);
       if (exists) {
@@ -219,8 +269,15 @@ export default function App() {
       }
     });
 
-    if (savedLead.stage === 'ganado') {
+    if (savedLead.stage === 'ganado' && (!existing || existing.stage !== 'ganado')) {
       fireConfetti();
+    }
+
+    // Trigger stage change push notification if stage changed during edit
+    if (existing && previousStage && previousStage !== savedLead.stage) {
+      notifyLeadStageChange(savedLead, previousStage, savedLead.stage, (l) => handleOpenEditLead(l));
+    } else if (isNew && savedLead.stage !== 'prospecto') {
+      notifyLeadStageChange(savedLead, 'prospecto', savedLead.stage, (l) => handleOpenEditLead(l));
     }
   };
 
@@ -239,7 +296,7 @@ export default function App() {
         if (lead.id === leadId) {
           const newHistory = [
             {
-              id: `act-${Date.now()}`,
+              id: generateActivityId('act-wa'),
               date: dateStr,
               type: 'whatsapp' as const,
               description
@@ -276,17 +333,33 @@ export default function App() {
 
   // Reset to defaults
   const handleResetData = () => {
-    if (window.confirm('¿Deseas restaurar la lista de médicos especialistas a los datos iniciales de demostración?')) {
-      const initial = resetLeadsToDefault();
-      setLeads([...initial]);
-    }
+    setConfirmDialog({
+      isOpen: true,
+      title: '¿Restaurar Datos de Demostración?',
+      description: 'Se restaurará la base de datos a los especialistas médicos iniciales de Ecuador.',
+      warningText: 'Esta acción reemplazará tus prospectos locales actuales por los datos predeterminados.',
+      confirmLabel: 'Sí, Restaurar Datos',
+      icon: 'reset',
+      onConfirm: () => {
+        const initial = resetLeadsToDefault();
+        setLeads([...initial]);
+      }
+    });
   };
 
   const handleResetTemplates = () => {
-    if (window.confirm('¿Deseas restaurar las plantillas de WhatsApp predeterminadas?')) {
-      const initial = resetTemplatesToDefault();
-      setTemplates([...initial]);
-    }
+    setConfirmDialog({
+      isOpen: true,
+      title: '¿Restaurar Plantillas de WhatsApp?',
+      description: 'Se restablecerán las plantillas predeterminadas optimizadas para Ecuador (+593).',
+      warningText: 'Cualquier plantilla modificada volverá a los textos y secuencias recomendadas originales.',
+      confirmLabel: 'Sí, Restaurar Plantillas',
+      icon: 'reset',
+      onConfirm: () => {
+        const initial = resetTemplatesToDefault();
+        setTemplates([...initial]);
+      }
+    });
   };
 
   const handleSaveTemplates = (newTemplates: WhatsAppTemplate[]) => {
@@ -332,7 +405,7 @@ export default function App() {
         if (l.id === leadId) {
           const newHistory = [
             {
-              id: `act-${Date.now()}`,
+              id: generateActivityId('act-contact'),
               date: `${today} ${timeStr}`,
               type: 'nota' as const,
               description: `Contacto registrado y verificado en CRM.`
@@ -379,7 +452,7 @@ export default function App() {
         onOpenBulkModal={() => setIsBulkModalOpen(true)}
         onManualSave={handleManualSave}
         onOpenLocalHostingModal={() => setIsLocalHostingModalOpen(true)}
-        overdueCount={overdueLeads.length}
+        overdueCount={totalAlertsCount}
         isDarkMode={isDarkMode}
         onToggleDarkMode={toggleDarkMode}
       />
@@ -396,7 +469,7 @@ export default function App() {
           onOpenLocalHostingModal={() => setIsLocalHostingModalOpen(true)}
           onManualSave={handleManualSave}
           onOpenServicesModal={() => setIsServicesModalOpen(true)}
-          overdueCount={overdueLeads.length}
+          overdueCount={totalAlertsCount}
           onOpenNotificationCenter={() => setIsNotificationCenterOpen(true)}
           onOpenBulkModal={() => setIsBulkModalOpen(true)}
           isDarkMode={isDarkMode}
@@ -404,7 +477,7 @@ export default function App() {
         />
 
         {/* Main View Area: 4 High-Value Workspaces */}
-        <main className="flex-1">
+        <main className="flex-1 pb-24 sm:pb-28 md:pb-8">
           {currentTab === 'today' && (
             <DailyCockpitView
               leads={leads}
@@ -509,6 +582,7 @@ export default function App() {
         isOpen={isNotificationCenterOpen}
         onClose={() => setIsNotificationCenterOpen(false)}
         overdueLeads={overdueLeads}
+        immediateAttentionLeads={immediateAttentionLeads}
         allLeads={leads}
         onOpenWhatsApp={handleOpenWhatsApp}
         onOpenEditLead={handleOpenEditLead}
@@ -518,9 +592,11 @@ export default function App() {
           setCurrentTab('table');
         }}
         thresholdHours={thresholdHours}
-        onThresholdChange={setThresholdHours}
+        onThresholdChange={(hrs) => handleUpdateNotificationPrefs({ thresholdHours: hrs })}
         isSoundEnabled={isSoundEnabled}
-        onToggleSound={() => setIsSoundEnabled(!isSoundEnabled)}
+        onToggleSound={() => handleUpdateNotificationPrefs({ soundEnabled: !isSoundEnabled })}
+        preferences={notificationPrefs}
+        onUpdatePreferences={handleUpdateNotificationPrefs}
       />
 
       {/* Services Manager Modal (Base services $99 / $150 and custom additions) */}
@@ -551,6 +627,23 @@ export default function App() {
         onImportBackup={handleImportBackup}
         onManualSave={handleManualSave}
       />
+
+      {/* Global In-App Confirmation Modal */}
+      {confirmDialog?.isOpen && (
+        <DeleteConfirmationModal
+          isOpen={true}
+          onClose={() => setConfirmDialog(null)}
+          onConfirm={() => {
+            confirmDialog.onConfirm();
+            setConfirmDialog(null);
+          }}
+          title={confirmDialog.title}
+          description={confirmDialog.description}
+          warningText={confirmDialog.warningText}
+          confirmLabel={confirmDialog.confirmLabel}
+          icon={confirmDialog.icon || 'reset'}
+        />
+      )}
     </div>
   );
 }

@@ -270,16 +270,16 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
 
         {/* Expandable Filter Tray */}
         {isFilterTrayOpen && (
-          <div className="pt-3 border-t border-slate-100 dark:border-slate-800 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5 animate-in fade-in slide-in-from-top-1 duration-150">
+          <div className="pt-3.5 border-t border-slate-100 dark:border-slate-800 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 animate-in fade-in slide-in-from-top-1 duration-150">
             {/* Specialty */}
             <div>
-              <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
                 Especialidad
               </label>
               <select
                 value={selectedSpecialty}
                 onChange={(e) => setSelectedSpecialty(e.target.value)}
-                className="w-full text-xs px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-medium focus:outline-none focus:border-teal-500"
+                className="w-full text-xs sm:text-sm px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-semibold focus:outline-none focus:border-teal-500"
               >
                 <option value="all">Todas ({leads.length})</option>
                 {getAllSpecialties().map((s) => (
@@ -292,13 +292,13 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
 
             {/* City */}
             <div>
-              <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
                 Ciudad (Ecuador)
               </label>
               <select
                 value={selectedCity}
                 onChange={(e) => setSelectedCity(e.target.value)}
-                className="w-full text-xs px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-medium focus:outline-none focus:border-teal-500"
+                className="w-full text-xs sm:text-sm px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-semibold focus:outline-none focus:border-teal-500"
               >
                 <option value="all">Todas las ciudades</option>
                 <option value="Manta">Manta</option>
@@ -311,13 +311,13 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
 
             {/* Sector */}
             <div>
-              <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
                 Sector / Zona
               </label>
               <select
                 value={selectedSector}
                 onChange={(e) => setSelectedSector(e.target.value)}
-                className="w-full text-xs px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-medium focus:outline-none focus:border-teal-500"
+                className="w-full text-xs sm:text-sm px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-semibold focus:outline-none focus:border-teal-500"
               >
                 <option value="all">Todos los sectores</option>
                 {ECUADOR_SECTORS.map((sec) => (
@@ -330,13 +330,13 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
 
             {/* Plan / Pricing */}
             <div>
-              <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
                 Plan Ofertado
               </label>
               <select
                 value={selectedService}
                 onChange={(e) => setSelectedService(e.target.value)}
-                className="w-full text-xs px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-medium focus:outline-none focus:border-teal-500"
+                className="w-full text-xs sm:text-sm px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-semibold focus:outline-none focus:border-teal-500"
               >
                 <option value="all">Todos los planes</option>
                 <option value="99">Plan 1 año ($99 USD)</option>
@@ -346,13 +346,13 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
 
             {/* Payment Status */}
             <div>
-              <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
                 Estado Pago
               </label>
               <select
                 value={selectedPaymentStatus}
                 onChange={(e) => setSelectedPaymentStatus(e.target.value)}
-                className="w-full text-xs px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-medium focus:outline-none focus:border-teal-500"
+                className="w-full text-xs sm:text-sm px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-semibold focus:outline-none focus:border-teal-500"
               >
                 <option value="all">Todos</option>
                 <option value="pagado">Pagado</option>
@@ -487,16 +487,16 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
               <button
                 key={s.id}
                 onClick={() => setActiveMobileStage(s.id)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold shrink-0 transition-all cursor-pointer ${
+                className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold shrink-0 transition-all cursor-pointer min-h-[40px] touch-manipulation ${
                   isActive
                     ? 'bg-teal-600 text-white shadow-xs'
-                    : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700'
+                    : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700'
                 }`}
               >
                 <span>{s.name}</span>
                 <span
-                  className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
-                    isActive ? 'bg-white/25 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
+                  className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${
+                    isActive ? 'bg-white/25 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-200'
                   }`}
                 >
                   {count}
@@ -514,20 +514,20 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
             <div className="flex items-center gap-2">
               <span className={`w-3 h-3 rounded-full ${currentStageMeta.color}`} />
               <div>
-                <h3 className="text-sm font-black text-slate-900 dark:text-slate-100">
+                <h3 className="text-sm font-black text-slate-900 dark:text-white">
                   {currentStageMeta.name}
                 </h3>
-                <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+                <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
                   {activeStageLeads.length} médicos · {formatCurrency(activeStageTotalValue)}
                 </span>
               </div>
             </div>
 
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1.5">
               <button
                 disabled={!prevStage}
                 onClick={() => prevStage && setActiveMobileStage(prevStage.id)}
-                className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 disabled:opacity-30 cursor-pointer"
+                className="w-9 h-9 rounded-xl border border-slate-300/80 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 disabled:opacity-30 cursor-pointer flex items-center justify-center touch-manipulation"
                 title="Etapa anterior"
               >
                 <ChevronLeft className="w-4 h-4" />
@@ -535,7 +535,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
               <button
                 disabled={!nextStage}
                 onClick={() => nextStage && setActiveMobileStage(nextStage.id)}
-                className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 disabled:opacity-30 cursor-pointer"
+                className="w-9 h-9 rounded-xl border border-slate-300/80 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 disabled:opacity-30 cursor-pointer flex items-center justify-center touch-manipulation"
                 title="Etapa siguiente"
               >
                 <ChevronRight className="w-4 h-4" />
@@ -545,9 +545,9 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
 
           {/* Leads List for this stage */}
           <div className="mt-3 space-y-2.5">
-            {activeStageLeads.map((lead) => (
+            {activeStageLeads.map((lead, idx) => (
               <KanbanCard
-                key={lead.id}
+                key={`${lead.id || 'kb-mobile'}-${idx}`}
                 lead={lead}
                 onOpenEdit={onOpenEdit}
                 onOpenWhatsApp={onOpenWhatsApp}
@@ -557,14 +557,14 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
             ))}
 
             {activeStageLeads.length === 0 && (
-              <div className="py-8 text-center text-slate-400 dark:text-slate-500 text-xs bg-white/60 dark:bg-slate-850/60 rounded-xl border border-dashed border-slate-300 dark:border-slate-800">
+              <div className="py-8 text-center text-slate-600 dark:text-slate-300 text-xs bg-white/60 dark:bg-slate-850/60 rounded-xl border border-dashed border-slate-300 dark:border-slate-800 font-medium">
                 No hay médicos en la etapa {currentStageMeta.name}
               </div>
             )}
 
             <button
               onClick={() => onAddNewLeadInStage(activeMobileStage)}
-              className="w-full py-2.5 rounded-xl border border-dashed border-teal-300 dark:border-teal-700 bg-teal-50/60 dark:bg-teal-950/30 hover:bg-teal-50 dark:hover:bg-teal-900/40 text-teal-700 dark:text-teal-300 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+              className="w-full py-3 rounded-xl border border-dashed border-teal-300 dark:border-teal-700 bg-teal-50/60 dark:bg-teal-950/30 hover:bg-teal-50 dark:hover:bg-teal-900/40 text-teal-800 dark:text-teal-300 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer min-h-[44px] touch-manipulation"
             >
               <Plus className="w-4 h-4" />
               <span>Añadir médico a {currentStageMeta.name}</span>
@@ -597,50 +597,50 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                 onDragOver={(e) => handleDragOver(e, stage.id)}
                 onDragLeave={handleDragLeave}
                 onDrop={(e) => handleDropOnColumn(e, stage.id)}
-                className={`flex-1 min-w-[270px] shrink-0 flex flex-col rounded-2xl transition-all duration-150 ${
+                className={`flex-1 min-w-[290px] lg:min-w-[310px] shrink-0 flex flex-col rounded-2xl transition-all duration-150 ${
                   isDragOver
                     ? 'bg-teal-50/90 dark:bg-teal-950/40 ring-2 ring-teal-500 border-teal-400 dark:border-teal-600'
-                    : 'bg-slate-100/80 dark:bg-slate-900/70 border border-slate-200/90 dark:border-slate-800'
+                    : 'bg-slate-100/90 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800'
                 }`}
               >
                 {/* Stage Header */}
-                <div className="p-3.5 border-b border-slate-200/90 dark:border-slate-800 flex items-center justify-between">
+                <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <span className={`w-3 h-3 rounded-full ${stage.color} shadow-2xs`} />
-                    <h3 className="text-xs font-black text-slate-800 dark:text-slate-200 tracking-tight">
+                    <span className={`w-3.5 h-3.5 rounded-full ${stage.color} shadow-2xs`} />
+                    <h3 className="text-sm font-black text-slate-900 dark:text-white tracking-tight">
                       {stage.name}
                     </h3>
                   </div>
 
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800 px-2 py-0.5 rounded-full border border-slate-200 dark:border-slate-700 shadow-2xs">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-extrabold text-slate-800 dark:text-slate-200 bg-white dark:bg-slate-800 px-2.5 py-0.5 rounded-full border border-slate-200 dark:border-slate-700 shadow-2xs">
                       {stageLeads.length}
                     </span>
                     <button
                       id={`btn-add-in-stage-${stage.id}`}
                       onClick={() => onAddNewLeadInStage(stage.id)}
                       title={`Agregar médico en ${stage.name}`}
-                      className="w-6 h-6 rounded-lg bg-white dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 transition-colors cursor-pointer"
+                      className="w-7 h-7 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-800 dark:text-slate-200 transition-colors cursor-pointer"
                     >
-                      <Plus className="w-3.5 h-3.5" />
+                      <Plus className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
 
                 {/* Sub-header: Total stage estimated amount */}
-                <div className="px-3.5 py-1.5 bg-slate-50/70 dark:bg-slate-850/60 border-b border-slate-200/60 dark:border-slate-800/80 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
+                <div className="px-4 py-2 bg-slate-50/90 dark:bg-slate-850/80 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs text-slate-700 dark:text-slate-300 font-medium">
                   <span>Valor en etapa:</span>
-                  <span className="font-bold text-slate-800 dark:text-slate-200">
+                  <span className="font-extrabold text-slate-900 dark:text-white">
                     {formatCurrency(stageTotalValue)}
                   </span>
                 </div>
 
                 {/* Cards Container */}
-                <div className="p-2.5 space-y-2.5 min-h-[460px] max-h-[calc(100vh-250px)] overflow-y-auto">
-                  {stageLeads.map((lead) => {
+                <div className="p-3 space-y-3 min-h-[460px] max-h-[calc(100vh-250px)] overflow-y-auto">
+                  {stageLeads.map((lead, idx) => {
                     return (
                       <div
-                        key={lead.id}
+                        key={`${lead.id || 'kb-col'}-${idx}`}
                         draggable
                         onDragStart={() => handleDragStart(lead.id)}
                         className="transition-all active:cursor-grabbing"

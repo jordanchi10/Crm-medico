@@ -39,6 +39,7 @@ import { downloadMediaAttachment } from '../utils/mediaDemoAssets';
 import { formatEcuadorPhoneForWhatsApp } from '../data/ecuadorData';
 import { getSpecialtyMeta } from '../data/specialties';
 import { formatCurrency } from '../utils/storage';
+import { openExternalLink } from '../utils/navigation';
 import confetti from 'canvas-confetti';
 
 interface TemplatesManagerProps {
@@ -64,6 +65,7 @@ export const TemplatesManager: React.FC<TemplatesManagerProps> = ({
   const [doctorSearch, setDoctorSearch] = useState<string>('');
   const [copiedSuccess, setCopiedSuccess] = useState(false);
   const [savedFeedback, setSavedFeedback] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [isAttachmentModalOpen, setIsAttachmentModalOpen] = useState(false);
   const [editingAttachment, setEditingAttachment] = useState<TemplateMediaAttachment | null>(null);
   const [playingAudioId, setPlayingAudioId] = useState<string | null>(null);
@@ -106,7 +108,8 @@ export const TemplatesManager: React.FC<TemplatesManagerProps> = ({
 
   const handleDeleteTemplate = (id: string) => {
     if (editingTemplates.length <= 1) {
-      alert('Debes mantener al menos una plantilla en el CRM.');
+      setToastMessage('Debes mantener al menos una plantilla en el CRM.');
+      setTimeout(() => setToastMessage(null), 3500);
       return;
     }
     const next = editingTemplates.filter((t) => t.id !== id);
@@ -192,7 +195,8 @@ export const TemplatesManager: React.FC<TemplatesManagerProps> = ({
   // Direct WhatsApp sender to selected doctor
   const handleDirectSendToSelectedDoctor = () => {
     if (!selectedLead) {
-      alert('Por favor selecciona un médico de la lista.');
+      setToastMessage('Por favor selecciona un médico de la lista.');
+      setTimeout(() => setToastMessage(null), 3500);
       return;
     }
 
@@ -200,7 +204,7 @@ export const TemplatesManager: React.FC<TemplatesManagerProps> = ({
     const targetPhone = cleanWhatsAppNumber || selectedLead.phone.replace(/[^0-9]/g, '');
     const encoded = encodeURIComponent(previewText);
     const url = `https://wa.me/${targetPhone}?text=${encoded}`;
-    window.open(url, '_blank');
+    openExternalLink(url);
     confetti({ particleCount: 50, spread: 60, origin: { y: 0.7 } });
   };
 
@@ -242,6 +246,13 @@ export const TemplatesManager: React.FC<TemplatesManagerProps> = ({
             </div>
           </div>
         </div>
+
+        {toastMessage && (
+          <div className="w-full bg-amber-50 dark:bg-amber-950/70 border border-amber-200 dark:border-amber-800 text-amber-900 dark:text-amber-200 text-xs px-3.5 py-2 rounded-xl flex items-center gap-2 animate-in fade-in">
+            <HelpCircle className="w-4 h-4 text-amber-600 shrink-0" />
+            <span>{toastMessage}</span>
+          </div>
+        )}
 
         <div className="flex items-center gap-2 flex-wrap">
           <button
@@ -383,8 +394,8 @@ export const TemplatesManager: React.FC<TemplatesManagerProps> = ({
                       {leads.length === 0 ? (
                         <option value="">No hay médicos registrados aún</option>
                       ) : (
-                        leads.map((l) => (
-                          <option key={l.id} value={l.id}>
+                        leads.map((l, lIdx) => (
+                          <option key={`${l.id || 'tpl-lead'}-${lIdx}`} value={l.id}>
                             {l.doctorName} • {l.specialty} ({l.clinicOrHospital} - {l.city || 'Ecuador'})
                           </option>
                         ))
@@ -540,7 +551,7 @@ export const TemplatesManager: React.FC<TemplatesManagerProps> = ({
 
               {/* Tag variables helper chip bar */}
               <div>
-                <div className="flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400 mb-1.5 font-medium">
+                <div className="flex items-center gap-1.5 text-xs text-slate-700 dark:text-slate-300 mb-1.5 font-semibold">
                   <Sparkles className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />
                   <span>Variables dinámicas disponibles (haz clic para insertar en el texto):</span>
                 </div>
@@ -552,7 +563,7 @@ export const TemplatesManager: React.FC<TemplatesManagerProps> = ({
                       onClick={() => {
                         handleUpdateCurrent('messageText', selectedTemplate.messageText + ' ' + tag);
                       }}
-                      className="px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 font-mono text-[11px] text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 cursor-pointer transition-colors"
+                      className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-750 font-mono text-xs font-bold text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 cursor-pointer transition-colors"
                     >
                       {tag}
                     </button>
@@ -562,15 +573,15 @@ export const TemplatesManager: React.FC<TemplatesManagerProps> = ({
 
               {/* Mensaje de texto base */}
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 flex items-center justify-between">
+                <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1 flex items-center justify-between">
                   <span>Paso 1: Mensaje de Texto Principal (WhatsApp)</span>
-                  <span className="text-[11px] font-normal text-slate-400">Se envía primero al médico</span>
+                  <span className="text-xs font-medium text-slate-600 dark:text-slate-300">Se envía primero al médico</span>
                 </label>
                 <textarea
                   rows={6}
                   value={selectedTemplate.messageText}
                   onChange={(e) => handleUpdateCurrent('messageText', e.target.value)}
-                  className="w-full text-xs font-sans p-3.5 rounded-xl border border-slate-300 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-white leading-relaxed"
+                  className="w-full text-xs sm:text-sm font-sans p-3.5 rounded-xl border border-slate-300 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-white leading-relaxed"
                 />
               </div>
 
@@ -584,7 +595,7 @@ export const TemplatesManager: React.FC<TemplatesManagerProps> = ({
                         Secuencia de Envío Multimedia (Imágenes, PDF y Audios MP3)
                       </h4>
                     </div>
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                    <p className="text-xs text-slate-600 dark:text-slate-300 mt-0.5 font-medium">
                       Los archivos se enviarán secuencialmente después del texto principal. Puedes reordenarlos libremente.
                     </p>
                   </div>

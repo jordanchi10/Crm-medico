@@ -16,6 +16,7 @@ import {
   RotateCcw,
   Sparkles,
   AlertCircle,
+  AlertTriangle,
   Settings2,
   Timer,
   BellRing
@@ -64,6 +65,7 @@ export const LocalHostingModal: React.FC<LocalHostingModalProps> = ({
   const [intervalHours, setIntervalHours] = useState<number>(4);
   const [scheduledTime, setScheduledTime] = useState<string>('18:00');
   const [maxSnapshots, setMaxSnapshots] = useState<number>(30);
+  const [snapshotToRestore, setSnapshotToRestore] = useState<DailySnapshot | null>(null);
 
   // Load current config on mount or open
   useEffect(() => {
@@ -137,10 +139,14 @@ export const LocalHostingModal: React.FC<LocalHostingModalProps> = ({
   };
 
   const handleRestoreSnapshot = (snapshot: DailySnapshot) => {
-    if (window.confirm(`¿Deseas restaurar la copia del día ${snapshot.date} (${snapshot.leadsCount} médicos)?`)) {
-      onImportBackup(snapshot.data.leads, snapshot.data.templates, snapshot.data.config);
-      setImportStatus(`¡Copia del día ${snapshot.date} restaurada con éxito!`);
-    }
+    setSnapshotToRestore(snapshot);
+  };
+
+  const confirmRestoreSnapshot = () => {
+    if (!snapshotToRestore) return;
+    onImportBackup(snapshotToRestore.data.leads, snapshotToRestore.data.templates, snapshotToRestore.data.config);
+    setImportStatus(`¡Copia del día ${snapshotToRestore.date} restaurada con éxito!`);
+    setSnapshotToRestore(null);
   };
 
   const copyToClipboard = (text: string, stepId: string) => {
@@ -496,6 +502,35 @@ export const LocalHostingModal: React.FC<LocalHostingModalProps> = ({
                   {dailySnapshots.length} copias en memoria local
                 </span>
               </div>
+
+              {/* Snapshot Restore Confirmation */}
+              {snapshotToRestore && (
+                <div className="p-3.5 bg-amber-50 dark:bg-amber-950/50 border border-amber-300 dark:border-amber-800 rounded-xl space-y-2 animate-in fade-in">
+                  <div className="flex items-center gap-2 text-xs font-bold text-amber-900 dark:text-amber-200">
+                    <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+                    <span>¿Restaurar copia del {snapshotToRestore.date}?</span>
+                  </div>
+                  <p className="text-[11px] text-amber-800 dark:text-amber-300">
+                    Se recuperarán {snapshotToRestore.leadsCount} médicos registrados y {snapshotToRestore.data.templates?.length || 0} plantillas de esa fecha.
+                  </p>
+                  <div className="flex items-center justify-end gap-2 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => setSnapshotToRestore(null)}
+                      className="px-2.5 py-1 rounded-lg border border-slate-300 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-850 cursor-pointer"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      type="button"
+                      onClick={confirmRestoreSnapshot}
+                      className="px-3 py-1 rounded-lg bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold shadow-2xs cursor-pointer"
+                    >
+                      Confirmar Restauración
+                    </button>
+                  </div>
+                </div>
+              )}
 
               <div className="border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden divide-y divide-slate-100 dark:divide-slate-800 text-xs">
                 {dailySnapshots.map((snap) => (

@@ -27,8 +27,9 @@ import {
   LeadRenewalInfo 
 } from '../utils/renewalUtils';
 import { getSpecialtyMeta } from '../data/specialties';
-import { formatCurrency } from '../utils/storage';
+import { formatCurrency, generateActivityId } from '../utils/storage';
 import { formatEcuadorPhoneForWhatsApp } from '../data/ecuadorData';
+import { openExternalLink } from '../utils/navigation';
 import { ThreeDRenewalsIcon } from './ThreeDIcons';
 import confetti from 'canvas-confetti';
 
@@ -96,7 +97,7 @@ export const RenewalsManagerView: React.FC<RenewalsManagerViewProps> = ({
     const { cleanWhatsAppNumber } = formatEcuadorPhoneForWhatsApp(lead.phone);
     if (cleanWhatsAppNumber) {
       const url = `https://wa.me/${cleanWhatsAppNumber}?text=${encodeURIComponent(message)}`;
-      window.open(url, '_blank');
+      openExternalLink(url);
     } else {
       onOpenWhatsApp(lead);
     }
@@ -132,7 +133,7 @@ export const RenewalsManagerView: React.FC<RenewalsManagerViewProps> = ({
       lastContactDate: today,
       history: [
         {
-          id: `act-${Date.now()}-ren`,
+          id: generateActivityId('act-ren'),
           date: dateStr,
           type: 'renovacion',
           description: `Renovación registrada exitosamente por ${addYears} año(s) ($${price} USD). Nueva vigencia hasta ${newRenewalDate}.`
@@ -182,60 +183,60 @@ export const RenewalsManagerView: React.FC<RenewalsManagerViewProps> = ({
       </div>
 
       {/* KPI Cards Row */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         
         {/* Card 1: Active Directory Clients */}
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 p-4 sm:p-5 shadow-xs">
-          <span className="text-xs font-bold text-slate-500 dark:text-slate-400">Médicos con Perfil Activo</span>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 sm:p-5 shadow-xs">
+          <span className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Médicos con Perfil Activo</span>
+          <div className="mt-2.5 flex items-baseline gap-2">
+            <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">
               {summary.totalActiveClients}
             </span>
-            <span className="text-[11px] text-slate-400 dark:text-slate-500 font-medium">suscripciones</span>
+            <span className="text-xs text-slate-600 dark:text-slate-300 font-semibold">suscripciones</span>
           </div>
-          <p className="text-[11px] text-emerald-700 dark:text-emerald-400 font-bold mt-1">
+          <p className="text-xs text-emerald-700 dark:text-emerald-400 font-bold mt-1">
             ${summary.totalAnnualRecurringRevenue} USD facturación base
           </p>
         </div>
 
         {/* Card 2: Due in 30 Days (At Stake) */}
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 p-4 sm:p-5 shadow-xs">
-          <span className="text-xs font-bold text-slate-500 dark:text-slate-400">Vencimientos en ≤ 30 Días</span>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-2xl sm:text-3xl font-black text-amber-600 dark:text-amber-400">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 sm:p-5 shadow-xs">
+          <span className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Vencimientos en ≤ 30 Días</span>
+          <div className="mt-2.5 flex items-baseline gap-2">
+            <span className="text-2xl sm:text-3xl font-extrabold text-amber-700 dark:text-amber-400">
               {summary.urgent15Count + summary.due30Count}
             </span>
-            <span className="text-[11px] text-slate-400 dark:text-slate-500 font-medium">médicos</span>
+            <span className="text-xs text-slate-600 dark:text-slate-300 font-semibold">médicos</span>
           </div>
-          <p className="text-[11px] text-amber-700 dark:text-amber-400 font-bold mt-1">
+          <p className="text-xs text-amber-700 dark:text-amber-400 font-bold mt-1">
             ${summary.revenueAtStake30Days} USD en juego este mes
           </p>
         </div>
 
         {/* Card 3: Urgents (< 15 days) */}
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 p-4 sm:p-5 shadow-xs">
-          <span className="text-xs font-bold text-slate-500 dark:text-slate-400">Urgentes (&lt; 15 días)</span>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-2xl sm:text-3xl font-black text-rose-600 dark:text-rose-400">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 sm:p-5 shadow-xs">
+          <span className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Urgentes (&lt; 15 días)</span>
+          <div className="mt-2.5 flex items-baseline gap-2">
+            <span className="text-2xl sm:text-3xl font-extrabold text-rose-700 dark:text-rose-400">
               {summary.urgent15Count}
             </span>
-            <span className="text-[11px] text-slate-400 dark:text-slate-500 font-medium">prioritarios</span>
+            <span className="text-xs text-slate-600 dark:text-slate-300 font-semibold">prioritarios</span>
           </div>
-          <p className="text-[11px] text-rose-600 dark:text-rose-400 font-bold mt-1">
+          <p className="text-xs text-rose-700 dark:text-rose-400 font-bold mt-1">
             Enviar recordatorio por WhatsApp
           </p>
         </div>
 
         {/* Card 4: Churn / Expired */}
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 p-4 sm:p-5 shadow-xs">
-          <span className="text-xs font-bold text-slate-500 dark:text-slate-400">Membresías Vencidas</span>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-2xl sm:text-3xl font-black text-slate-700 dark:text-slate-200">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 sm:p-5 shadow-xs">
+          <span className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Membresías Vencidas</span>
+          <div className="mt-2.5 flex items-baseline gap-2">
+            <span className="text-2xl sm:text-3xl font-extrabold text-slate-800 dark:text-slate-100">
               {summary.expiredCount}
             </span>
-            <span className="text-[11px] text-slate-400 dark:text-slate-500 font-medium">por reactivar</span>
+            <span className="text-xs text-slate-600 dark:text-slate-300 font-semibold">por reactivar</span>
           </div>
-          <p className="text-[11px] text-slate-500 dark:text-slate-400 font-bold mt-1">
+          <p className="text-xs text-slate-700 dark:text-slate-300 font-bold mt-1">
             Tasa de retención actual: {summary.retentionRate}%
           </p>
         </div>
@@ -243,14 +244,14 @@ export const RenewalsManagerView: React.FC<RenewalsManagerViewProps> = ({
       </div>
 
       {/* Filter Tabs */}
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 p-2 sm:p-3 shadow-xs flex items-center gap-1.5 overflow-x-auto">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-2 sm:p-3 shadow-xs flex items-center gap-2 overflow-x-auto">
         <button
           type="button"
           onClick={() => setFilter('all')}
-          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+          className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
             filter === 'all'
               ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 shadow-2xs'
-              : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+              : 'text-slate-750 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800'
           }`}
         >
           Todos ({clientRenewalInfos.length})
@@ -329,12 +330,12 @@ export const RenewalsManagerView: React.FC<RenewalsManagerViewProps> = ({
           </div>
         ) : (
           <div className="divide-y divide-slate-100 dark:divide-slate-800">
-            {filteredList.map(({ lead, info }) => {
+            {filteredList.map(({ lead, info }, idx) => {
               const specMeta = getSpecialtyMeta(lead.specialty);
               const isRenewing = renewingLeadId === lead.id;
 
               return (
-                <div key={lead.id} className="p-4 sm:p-5 hover:bg-slate-50/70 dark:hover:bg-slate-850/60 transition-colors space-y-3">
+                <div key={`${lead.id || 'renewal-lead'}-${idx}`} className="p-4 sm:p-5 hover:bg-slate-50/70 dark:hover:bg-slate-850/60 transition-colors space-y-3">
                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
                     
                     {/* Doctor Info */}
@@ -356,7 +357,7 @@ export const RenewalsManagerView: React.FC<RenewalsManagerViewProps> = ({
                           </span>
                         </div>
 
-                        <div className="text-xs text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-2 flex-wrap">
+                        <div className="text-xs text-slate-700 dark:text-slate-300 mt-1 flex items-center gap-2 flex-wrap font-medium">
                           <span>🏥 {lead.clinicOrHospital}</span>
                           <span>📍 {lead.city || 'Manta'} ({lead.sector || 'Centro'})</span>
                           <span className="font-mono text-emerald-700 dark:text-emerald-400 font-bold">📱 {lead.phone}</span>
@@ -365,19 +366,19 @@ export const RenewalsManagerView: React.FC<RenewalsManagerViewProps> = ({
                     </div>
 
                     {/* Plan Details & Dates */}
-                    <div className="flex items-center gap-4 text-xs">
-                      <div className="bg-slate-50 dark:bg-slate-800 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-right min-w-[140px]">
-                        <span className="text-[10px] text-slate-400 dark:text-slate-500 block font-bold">Plan Actual</span>
-                        <strong className="text-slate-800 dark:text-slate-100 font-black">${info.planPrice} USD</strong>
-                        <span className="text-[10px] text-slate-500 dark:text-slate-400 block">
+                    <div className="flex items-center gap-3 sm:gap-4 text-xs flex-wrap sm:flex-nowrap">
+                      <div className="bg-slate-50 dark:bg-slate-800 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-right min-w-[130px] sm:min-w-[140px] flex-1 sm:flex-none">
+                        <span className="text-[10px] text-slate-600 dark:text-slate-400 block font-bold">Plan Actual</span>
+                        <strong className="text-slate-900 dark:text-white font-black text-sm">${info.planPrice} USD</strong>
+                        <span className="text-xs text-slate-700 dark:text-slate-300 block font-medium">
                           {info.durationYears} {info.durationYears === 1 ? 'año' : 'años'}
                         </span>
                       </div>
 
-                      <div className="bg-slate-50 dark:bg-slate-800 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 min-w-[150px]">
-                        <span className="text-[10px] text-slate-400 dark:text-slate-500 block font-bold">Vigencia</span>
-                        <span className="text-[11px] text-slate-600 dark:text-slate-400 block">Alta: {info.startDate}</span>
-                        <span className="text-[11px] font-bold text-slate-900 dark:text-white block">
+                      <div className="bg-slate-50 dark:bg-slate-800 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 min-w-[140px] sm:min-w-[150px] flex-1 sm:flex-none">
+                        <span className="text-[10px] text-slate-600 dark:text-slate-400 block font-bold">Vigencia</span>
+                        <span className="text-xs text-slate-700 dark:text-slate-300 block font-medium">Alta: {info.startDate}</span>
+                        <span className="text-xs font-bold text-slate-900 dark:text-white block mt-0.5">
                           Vence: <span className="font-mono text-emerald-700 dark:text-emerald-400">{info.renewalDate}</span>
                         </span>
                       </div>
@@ -391,7 +392,7 @@ export const RenewalsManagerView: React.FC<RenewalsManagerViewProps> = ({
                       <button
                         type="button"
                         onClick={() => handleSendRenewalWhatsApp(lead, info)}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-colors cursor-pointer shadow-2xs"
+                        className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-xs font-bold transition-colors cursor-pointer shadow-2xs min-h-[38px] touch-manipulation"
                       >
                         <MessageCircle className="w-3.5 h-3.5 fill-white" />
                         <span>WhatsApp Renovación</span>

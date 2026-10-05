@@ -52,7 +52,7 @@ import {
   formatEcuadorPhoneForWhatsApp 
 } from '../data/ecuadorData';
 import { BASE_SERVICES } from '../data/servicesData';
-import { formatCurrency } from '../utils/storage';
+import { formatCurrency, generateActivityId } from '../utils/storage';
 import { parseRawDoctorInfo } from '../utils/rawInfoParser';
 import { getLeadRegistrationInfo, formatRegistrationDate, formatNoteTimestamp } from '../utils/dateUtils';
 import { DeleteConfirmationModal } from './DeleteConfirmationModal';
@@ -275,7 +275,7 @@ export const LeadModal: React.FC<LeadModalProps> = ({
     const dateStr = now.toISOString().replace('T', ' ').slice(0, 16);
     const todayStr = now.toISOString().split('T')[0];
     const newLog: ActivityLog = {
-      id: `act-${Date.now()}`,
+      id: generateActivityId('act-note'),
       date: dateStr,
       type: 'nota',
       description: textToAdd
@@ -328,14 +328,14 @@ export const LeadModal: React.FC<LeadModalProps> = ({
 
     if (!leadToEdit) {
       updatedHistory.push({
-        id: `act-${Date.now()}`,
+        id: generateActivityId('act-creacion'),
         date: dateStr,
         type: 'creacion',
         description: `Prospecto creado para ${serviceName} en ${city} (${sector}). Etapa: ${STAGES.find((s) => s.id === stage)?.name}`
       });
     } else if (leadToEdit.stage !== stage) {
       updatedHistory.unshift({
-        id: `act-${Date.now()}`,
+        id: generateActivityId('act-etapa'),
         date: dateStr,
         type: 'etapa',
         description: `Etapa cambiada a: ${STAGES.find((s) => s.id === stage)?.name}`
@@ -344,7 +344,7 @@ export const LeadModal: React.FC<LeadModalProps> = ({
 
     if (leadToEdit && leadToEdit.paidAmount !== paidAmount && paidAmount > 0) {
       updatedHistory.unshift({
-        id: `act-${Date.now()}-pay`,
+        id: generateActivityId('act-pago'),
         date: dateStr,
         type: 'pago',
         description: `Pago registrado de ${formatCurrency(paidAmount)} vía ${paymentMethod}`
@@ -487,55 +487,55 @@ export const LeadModal: React.FC<LeadModalProps> = ({
             <button
               type="button"
               onClick={() => setActiveTab('general')}
-              className={`px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer touch-manipulation ${
+              className={`px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer touch-manipulation min-h-[38px] ${
                 activeTab === 'general'
                   ? 'bg-white dark:bg-slate-800 text-teal-800 dark:text-teal-300 shadow-xs border border-teal-200 dark:border-teal-700 ring-2 ring-teal-500/10'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-200/60 dark:hover:bg-slate-800/60'
+                  : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-800/60'
               }`}
             >
-              <User className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${activeTab === 'general' ? 'text-teal-600 dark:text-teal-400' : 'text-slate-400'}`} />
+              <User className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${activeTab === 'general' ? 'text-teal-600 dark:text-teal-400' : 'text-slate-500 dark:text-slate-400'}`} />
               <span>1. Datos</span>
             </button>
 
             <button
               type="button"
               onClick={() => setActiveTab('sales')}
-              className={`px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer touch-manipulation ${
+              className={`px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer touch-manipulation min-h-[38px] ${
                 activeTab === 'sales'
                   ? 'bg-white dark:bg-slate-800 text-teal-800 dark:text-teal-300 shadow-xs border border-teal-200 dark:border-teal-700 ring-2 ring-teal-500/10'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-200/60 dark:hover:bg-slate-800/60'
+                  : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-800/60'
               }`}
             >
-              <Calendar className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${activeTab === 'sales' ? 'text-teal-600 dark:text-teal-400' : 'text-slate-400'}`} />
+              <Calendar className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${activeTab === 'sales' ? 'text-teal-600 dark:text-teal-400' : 'text-slate-500 dark:text-slate-400'}`} />
               <span>2. Embudo</span>
             </button>
 
             <button
               type="button"
               onClick={() => setActiveTab('finances')}
-              className={`px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer touch-manipulation ${
+              className={`px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer touch-manipulation min-h-[38px] ${
                 activeTab === 'finances'
                   ? 'bg-white dark:bg-slate-800 text-teal-800 dark:text-teal-300 shadow-xs border border-teal-200 dark:border-teal-700 ring-2 ring-teal-500/10'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-200/60 dark:hover:bg-slate-800/60'
+                  : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-800/60'
               }`}
             >
-              <CreditCard className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${activeTab === 'finances' ? 'text-teal-600 dark:text-teal-400' : 'text-slate-400'}`} />
+              <CreditCard className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${activeTab === 'finances' ? 'text-teal-600 dark:text-teal-400' : 'text-slate-500 dark:text-slate-400'}`} />
               <span>3. Pagos</span>
             </button>
 
             <button
               type="button"
               onClick={() => setActiveTab('notes')}
-              className={`px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer touch-manipulation ${
+              className={`px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer touch-manipulation min-h-[38px] ${
                 activeTab === 'notes'
                   ? 'bg-white dark:bg-slate-800 text-teal-800 dark:text-teal-300 shadow-xs border border-teal-200 dark:border-teal-700 ring-2 ring-teal-500/10'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-200/60 dark:hover:bg-slate-800/60'
+                  : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-800/60'
               }`}
             >
-              <FileText className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${activeTab === 'notes' ? 'text-teal-600 dark:text-teal-400' : 'text-slate-400'}`} />
+              <FileText className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${activeTab === 'notes' ? 'text-teal-600 dark:text-teal-400' : 'text-slate-500 dark:text-slate-400'}`} />
               <span>4. Notas</span>
               {history.length > 0 && (
-                <span className="px-1.5 py-0.2 text-[9px] rounded-full bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold">
+                <span className="px-1.5 py-0.2 text-[9px] rounded-full bg-slate-200 dark:bg-slate-750 text-slate-800 dark:text-slate-200 font-bold">
                   {history.length}
                 </span>
               )}
@@ -1081,7 +1081,7 @@ export const LeadModal: React.FC<LeadModalProps> = ({
 
                           return (
                             <div
-                              key={note.id || `quick-note-${idx}`}
+                              key={`${note.id || 'quick-note'}-${idx}`}
                               className="p-3 rounded-xl bg-white dark:bg-slate-800 border border-amber-200/80 dark:border-slate-700 shadow-2xs hover:border-amber-300 dark:hover:border-amber-600 transition-colors flex items-start justify-between gap-3 group"
                             >
                               <div className="flex items-start gap-2.5 min-w-0 flex-1">
@@ -1554,8 +1554,8 @@ export const LeadModal: React.FC<LeadModalProps> = ({
                     </p>
                   ) : (
                     <div className="max-h-56 overflow-y-auto space-y-2 pr-1">
-                      {history.map((act) => (
-                        <div key={act.id} className="text-xs p-2.5 sm:p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 flex items-start justify-between gap-2.5 group">
+                      {history.map((act, idx) => (
+                        <div key={`${act.id || 'act'}-${idx}`} className="text-xs p-2.5 sm:p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 flex items-start justify-between gap-2.5 group">
                           <div className="flex items-start gap-2.5 min-w-0 flex-1">
                             <span className="text-[10px] text-teal-700 dark:text-teal-300 font-mono font-bold bg-teal-100/70 dark:bg-teal-950/70 px-2 py-0.5 rounded-md shrink-0 mt-0.5">
                               {act.date.slice(5, 16)}

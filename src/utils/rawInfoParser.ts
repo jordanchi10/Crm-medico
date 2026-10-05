@@ -525,7 +525,7 @@ export function convertBulkRowsToLeads(
         tags: [row.sector, 'Carga Masiva'],
         history: [
           {
-            id: `act-bulk-${Date.now()}-${idx}`,
+            id: `act-bulk-${Date.now()}-${idx}-${Math.random().toString(36).slice(2, 7)}`,
             date: dateStr,
             type: 'creacion',
             description: `Médico registrado masivamente en la plataforma para ${options.defaultServiceName} en sector ${row.sector}.`

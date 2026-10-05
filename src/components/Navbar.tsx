@@ -140,12 +140,12 @@ export const Navbar: React.FC<NavbarProps> = ({
     <>
       {/* Top Header Bar */}
       <header className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200/90 dark:border-slate-800 sticky top-0 z-20 shadow-xs transition-colors duration-200">
-        <div className="px-3 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-15 sm:h-16 gap-2">
+        <div className="px-4 sm:px-8 max-w-7xl mx-auto">
+          <div className="flex items-center justify-between h-16 sm:h-18 gap-3">
             
             {/* Mobile: Brand Logo & Country Tag */}
             <div className="flex md:hidden items-center gap-2.5 shrink-0">
-              <div className="w-9 h-9 rounded-2xl bg-gradient-to-tr from-red-600 via-rose-500 to-red-400 flex items-center justify-center text-white shadow-md shadow-red-500/30 shrink-0 border border-white/20">
+              <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-red-600 via-rose-500 to-red-400 flex items-center justify-center text-white shadow-md shadow-red-500/30 shrink-0 border border-white/20">
                 <Stethoscope className="w-5 h-5" />
               </div>
               <div className="flex items-center gap-1.5">
@@ -164,27 +164,27 @@ export const Navbar: React.FC<NavbarProps> = ({
             {/* Desktop: Current Section Title & Breadcrumb */}
             <div className="hidden md:flex items-center gap-3">
               <div>
-                <h1 className="text-sm lg:text-base font-black text-slate-900 dark:text-white leading-tight">
+                <h1 className="text-base lg:text-lg font-black text-slate-900 dark:text-white leading-tight">
                   {tabTitles[currentTab].title}
                 </h1>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium leading-none mt-0.5">
+                <p className="text-xs text-slate-600 dark:text-slate-300 font-medium leading-normal mt-0.5">
                   {tabTitles[currentTab].subtitle}
                 </p>
               </div>
             </div>
 
             {/* Right Action Buttons */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2.5">
               
               {/* Quick KPI pill on desktop */}
-              <div className="hidden xl:flex items-center gap-2 text-xs bg-slate-50 dark:bg-slate-800/70 border border-slate-200/90 dark:border-slate-700/70 px-3 py-1.5 rounded-xl text-slate-600 dark:text-slate-300 shadow-2xs">
-                <span className="flex items-center gap-1 font-semibold text-slate-700 dark:text-slate-200">
-                  <Users className="w-3.5 h-3.5 text-slate-400 dark:text-slate-400" />
+              <div className="hidden xl:flex items-center gap-2.5 text-xs bg-slate-50 dark:bg-slate-800/80 border border-slate-200/90 dark:border-slate-700/80 px-3.5 py-2 rounded-xl text-slate-700 dark:text-slate-200 shadow-2xs">
+                <span className="flex items-center gap-1.5 font-bold text-slate-800 dark:text-slate-200">
+                  <Users className="w-4 h-4 text-teal-600 dark:text-teal-400" />
                   {totalLeads} médicos
                 </span>
                 <span className="text-slate-300 dark:text-slate-600">•</span>
-                <span className="flex items-center gap-1 font-bold text-emerald-700 dark:text-emerald-400">
-                  <Sparkles className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                <span className="flex items-center gap-1.5 font-black text-emerald-700 dark:text-emerald-400">
+                  <Sparkles className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                   {formatCurrency(wonRevenue)}
                 </span>
               </div>
@@ -195,13 +195,13 @@ export const Navbar: React.FC<NavbarProps> = ({
                   id="btn-toggle-theme"
                   onClick={onToggleDarkMode}
                   title={isDarkMode ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
-                  className="inline-flex items-center justify-center p-2 rounded-xl border border-slate-200 dark:border-slate-700/80 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/80 transition-all cursor-pointer hover:scale-105 active:scale-95 shadow-2xs"
+                  className="inline-flex items-center justify-center p-2.5 rounded-xl border border-slate-200 dark:border-slate-700/80 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/80 transition-all cursor-pointer hover:scale-105 active:scale-95 shadow-2xs"
                   aria-label="Alternar modo oscuro"
                 >
                   {isDarkMode ? (
-                    <Sun className="w-4 h-4 text-amber-400 animate-in spin-in-90 duration-200" />
+                    <Sun className="w-4.5 h-4.5 text-amber-400 animate-in spin-in-90 duration-200" />
                   ) : (
-                    <Moon className="w-4 h-4 text-slate-600 animate-in spin-in-90 duration-200" />
+                    <Moon className="w-4.5 h-4.5 text-slate-700 animate-in spin-in-90 duration-200" />
                   )}
                 </button>
               )}
@@ -212,20 +212,20 @@ export const Navbar: React.FC<NavbarProps> = ({
                 onClick={onOpenNotificationCenter}
                 title={
                   overdueCount > 0
-                    ? `${overdueCount} prospecto(s) con más de 48h sin contacto`
+                    ? `${overdueCount} alerta(s): citas de hoy, seguimientos o inactividad`
                     : 'Centro de notificaciones y alertas'
                 }
-                className={`relative inline-flex items-center justify-center p-2 rounded-xl border transition-all cursor-pointer hover:-translate-y-0.5 ${
+                className={`relative inline-flex items-center justify-center p-2.5 rounded-xl border transition-all cursor-pointer hover:-translate-y-0.5 ${
                   overdueCount > 0
                     ? 'bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border-rose-300 dark:border-rose-800 hover:bg-rose-100 dark:hover:bg-rose-900/50 shadow-2xs'
-                    : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700/80 hover:bg-slate-100 dark:hover:bg-slate-700/80'
+                    : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700/80 hover:bg-slate-100 dark:hover:bg-slate-700/80'
                 }`}
                 aria-label="Notificaciones"
               >
                 {overdueCount > 0 ? (
-                  <BellRing className="w-4 h-4 text-rose-600 dark:text-rose-400 animate-pulse" />
+                  <BellRing className="w-4.5 h-4.5 text-rose-600 dark:text-rose-400 animate-pulse" />
                 ) : (
-                  <Bell className="w-4 h-4 text-slate-600 dark:text-slate-300" />
+                  <Bell className="w-4.5 h-4.5 text-slate-700 dark:text-slate-300" />
                 )}
                 {overdueCount > 0 && (
                   <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-rose-600 text-white text-[10px] font-black rounded-full flex items-center justify-center shadow-xs border-2 border-white dark:border-slate-900 animate-bounce">
@@ -270,11 +270,11 @@ export const Navbar: React.FC<NavbarProps> = ({
                     
                     {/* Header in dropdown */}
                     <div className="px-4 py-2 border-b border-slate-100 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-800/60">
-                      <p className="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                      <p className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
                         <Sparkles className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />
                         <span>MédicoEC CRM Ecuador</span>
                       </p>
-                      <p className="text-[11px] text-slate-500 dark:text-slate-400">Gestión Comercial y Médica</p>
+                      <p className="text-xs text-slate-600 dark:text-slate-300 font-medium">Gestión Comercial y Médica</p>
                     </div>
 
                     {/* Dark mode quick trigger inside dropdown */}
@@ -284,20 +284,20 @@ export const Navbar: React.FC<NavbarProps> = ({
                           onToggleDarkMode();
                           setIsMenuOpen(false);
                         }}
-                        className="w-full text-left px-4 py-2.5 text-slate-700 dark:text-slate-200 hover:bg-teal-50 dark:hover:bg-slate-800 flex items-center justify-between font-medium transition-colors cursor-pointer"
+                        className="w-full text-left px-4 py-2.5 text-slate-800 dark:text-slate-100 hover:bg-teal-50 dark:hover:bg-slate-800 flex items-center justify-between font-medium transition-colors cursor-pointer"
                       >
                         <div className="flex items-center gap-2.5">
                           {isDarkMode ? (
                             <Sun className="w-4 h-4 text-amber-500" />
                           ) : (
-                            <Moon className="w-4 h-4 text-slate-500" />
+                            <Moon className="w-4 h-4 text-slate-600" />
                           )}
                           <div>
-                            <div className="font-bold">Tema: {isDarkMode ? 'Modo Oscuro' : 'Modo Claro'}</div>
-                            <div className="text-[10px] text-slate-400">Alternar contraste visual</div>
+                            <div className="font-bold text-slate-900 dark:text-white">Tema: {isDarkMode ? 'Modo Oscuro' : 'Modo Claro'}</div>
+                            <div className="text-xs text-slate-600 dark:text-slate-300">Alternar contraste visual</div>
                           </div>
                         </div>
-                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold">
+                        <span className="text-xs px-2.5 py-0.5 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold">
                           {isDarkMode ? 'Oscuro' : 'Claro'}
                         </span>
                       </button>
@@ -310,12 +310,12 @@ export const Navbar: React.FC<NavbarProps> = ({
                           setIsMenuOpen(false);
                           onOpenBulkModal();
                         }}
-                        className="w-full text-left px-4 py-2.5 text-slate-700 dark:text-slate-200 hover:bg-teal-50 dark:hover:bg-slate-800 hover:text-teal-900 dark:hover:text-teal-300 flex items-center gap-2.5 font-medium transition-colors cursor-pointer"
+                        className="w-full text-left px-4 py-2.5 text-slate-800 dark:text-slate-100 hover:bg-teal-50 dark:hover:bg-slate-800 hover:text-teal-900 dark:hover:text-teal-300 flex items-center gap-2.5 font-medium transition-colors cursor-pointer"
                       >
                         <FileSpreadsheet className="w-4 h-4 text-teal-600 dark:text-teal-400" />
                         <div>
-                          <div className="font-bold">Carga Masiva de Médicos</div>
-                          <div className="text-[10px] text-slate-400">Pegar lista de doctores / Excel</div>
+                          <div className="font-bold text-slate-900 dark:text-white">Carga Masiva de Médicos</div>
+                          <div className="text-xs text-slate-600 dark:text-slate-300">Pegar lista de doctores / Excel</div>
                         </div>
                       </button>
                     )}
@@ -326,12 +326,12 @@ export const Navbar: React.FC<NavbarProps> = ({
                         setIsMenuOpen(false);
                         onOpenServicesModal();
                       }}
-                      className="w-full text-left px-4 py-2.5 text-slate-700 dark:text-slate-200 hover:bg-teal-50 dark:hover:bg-slate-800 hover:text-teal-900 dark:hover:text-teal-300 flex items-center gap-2.5 font-medium transition-colors cursor-pointer"
+                      className="w-full text-left px-4 py-2.5 text-slate-800 dark:text-slate-100 hover:bg-teal-50 dark:hover:bg-slate-800 hover:text-teal-900 dark:hover:text-teal-300 flex items-center gap-2.5 font-medium transition-colors cursor-pointer"
                     >
                       <Briefcase className="w-4 h-4 text-teal-600 dark:text-teal-400" />
                       <div>
-                        <div className="font-bold">Planes de Venta ($99 y $150)</div>
-                        <div className="text-[10px] text-slate-400">Personalizar servicios y tarifas</div>
+                        <div className="font-bold text-slate-900 dark:text-white">Planes de Venta ($99 y $150)</div>
+                        <div className="text-xs text-slate-600 dark:text-slate-300">Personalizar servicios y tarifas</div>
                       </div>
                     </button>
 
@@ -341,12 +341,12 @@ export const Navbar: React.FC<NavbarProps> = ({
                         setIsMenuOpen(false);
                         onOpenLocalHostingModal();
                       }}
-                      className="w-full text-left px-4 py-2.5 text-slate-700 dark:text-slate-200 hover:bg-teal-50 dark:hover:bg-slate-800 hover:text-teal-900 dark:hover:text-teal-300 flex items-center gap-2.5 font-medium transition-colors cursor-pointer"
+                      className="w-full text-left px-4 py-2.5 text-slate-800 dark:text-slate-100 hover:bg-teal-50 dark:hover:bg-slate-800 hover:text-teal-900 dark:hover:text-teal-300 flex items-center gap-2.5 font-medium transition-colors cursor-pointer"
                     >
                       <HardDrive className="w-4 h-4 text-teal-600 dark:text-teal-400" />
                       <div>
-                        <div className="font-bold">Hospedaje Local / PWA</div>
-                        <div className="text-[10px] text-slate-400">Ejecutar sin servidor en tu PC</div>
+                        <div className="font-bold text-slate-900 dark:text-white">Hospedaje Local / PWA</div>
+                        <div className="text-xs text-slate-600 dark:text-slate-300">Ejecutar sin servidor en tu PC</div>
                       </div>
                     </button>
 
@@ -356,12 +356,12 @@ export const Navbar: React.FC<NavbarProps> = ({
                         handleManualSave();
                         setIsMenuOpen(false);
                       }}
-                      className="w-full text-left px-4 py-2.5 text-slate-700 dark:text-slate-200 hover:bg-teal-50 dark:hover:bg-slate-800 hover:text-teal-900 dark:hover:text-teal-300 flex items-center gap-2.5 font-medium transition-colors cursor-pointer"
+                      className="w-full text-left px-4 py-2.5 text-slate-800 dark:text-slate-100 hover:bg-teal-50 dark:hover:bg-slate-800 hover:text-teal-900 dark:hover:text-teal-300 flex items-center gap-2.5 font-medium transition-colors cursor-pointer"
                     >
                       <Save className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                       <div>
-                        <div className="font-bold">Guardar Ahora (Snapshot)</div>
-                        <div className="text-[10px] text-slate-400">Copia de seguridad instantánea</div>
+                        <div className="font-bold text-slate-900 dark:text-white">Guardar Ahora (Snapshot)</div>
+                        <div className="text-xs text-slate-600 dark:text-slate-300">Copia de seguridad instantánea</div>
                       </div>
                     </button>
 
@@ -397,118 +397,126 @@ export const Navbar: React.FC<NavbarProps> = ({
       {/* Mobile Bottom Navigation Bar (Native App Dock) */}
       <div 
         className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-t border-slate-200/90 dark:border-slate-800 shadow-[0_-4px_25px_rgba(0,0,0,0.12)] select-none transition-colors duration-200" 
-        style={{ paddingBottom: 'max(0.4rem, env(safe-area-inset-bottom, 0px))' }}
+        style={{ paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom, 0px))' }}
       >
-        <nav className="grid grid-cols-5 items-center h-16 px-1">
+        <nav className="grid grid-cols-5 items-center h-16 sm:h-18 px-1">
           {/* 1. Mi Jornada */}
           <button
             id="mobile-nav-today"
             onClick={() => setCurrentTab('today')}
-            className="flex flex-col items-center justify-center py-1 transition-all cursor-pointer active:scale-95"
+            className="flex flex-col items-center justify-center py-1.5 min-h-[48px] transition-all cursor-pointer active:scale-95 touch-manipulation"
             aria-label="Mi Jornada de Hoy"
           >
-            <div className={`flex items-center justify-center w-10 h-7 rounded-full transition-all duration-200 ${
+            <div className={`flex items-center justify-center w-11 h-7 rounded-full transition-all duration-200 ${
               currentTab === 'today'
                 ? 'bg-amber-500 text-white shadow-xs'
-                : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
             }`}>
-              <Sun className="w-4 h-4 stroke-[2.2]" />
+              <Sun className="w-4.5 h-4.5 stroke-[2.2]" />
             </div>
-            <span className={`text-[10px] leading-none mt-1 transition-colors ${
+            <span className={`text-[11px] leading-tight mt-1 transition-colors ${
               currentTab === 'today'
-                ? 'font-bold text-amber-800 dark:text-amber-400'
-                : 'font-medium text-slate-500 dark:text-slate-400'
+                ? 'font-black text-amber-800 dark:text-amber-400'
+                : 'font-bold text-slate-700 dark:text-slate-300'
             }`}>
               Jornada
             </span>
           </button>
 
-          {/* 2. Embudo y Médicos (Pipeline Workspace) */}
+          {/* 2. Directorio de Médicos */}
+          <button
+            id="mobile-nav-directory"
+            onClick={() => setCurrentTab('table')}
+            className="flex flex-col items-center justify-center py-1.5 min-h-[48px] transition-all cursor-pointer active:scale-95 touch-manipulation"
+            aria-label="Directorio Médico"
+          >
+            <div className={`relative flex items-center justify-center w-11 h-7 rounded-full transition-all duration-200 ${
+              currentTab === 'table'
+                ? 'bg-teal-600 text-white shadow-xs'
+                : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
+            }`}>
+              <Users className="w-4.5 h-4.5 stroke-[2.2]" />
+            </div>
+            <span className={`text-[11px] leading-tight mt-1 transition-colors ${
+              currentTab === 'table'
+                ? 'font-black text-teal-800 dark:text-teal-400'
+                : 'font-bold text-slate-700 dark:text-slate-300'
+            }`}>
+              Directorio
+            </span>
+          </button>
+
+          {/* 3. Embudo Comercial / Kanban */}
           <button
             id="mobile-nav-pipeline"
-            onClick={() => setCurrentTab('pipeline')}
-            className="flex flex-col items-center justify-center py-1 transition-all cursor-pointer active:scale-95"
-            aria-label="Embudo Comercial y Directorio"
+            onClick={() => setCurrentTab('kanban')}
+            className="flex flex-col items-center justify-center py-1.5 min-h-[48px] transition-all cursor-pointer active:scale-95 touch-manipulation"
+            aria-label="Embudo Comercial y Kanban"
           >
-            <div className={`relative flex items-center justify-center w-10 h-7 rounded-full transition-all duration-200 ${
-              currentTab === 'pipeline' || currentTab === 'kanban' || currentTab === 'table' || currentTab === 'calendar' || currentTab === 'renewals'
-                ? 'bg-teal-600 text-white shadow-xs'
-                : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+            <div className={`relative flex items-center justify-center w-11 h-7 rounded-full transition-all duration-200 ${
+              currentTab === 'pipeline' || currentTab === 'kanban' || currentTab === 'calendar' || currentTab === 'renewals'
+                ? 'bg-sky-600 text-white shadow-xs'
+                : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
             }`}>
-              <LayoutDashboard className="w-4 h-4 stroke-[2.2]" />
+              <LayoutDashboard className="w-4.5 h-4.5 stroke-[2.2]" />
               {overdueCount > 0 && (
-                <span className="absolute -top-1 -right-1 min-w-[14px] h-[14px] px-0.5 bg-rose-600 text-white text-[8px] font-black rounded-full flex items-center justify-center border-2 border-white dark:border-slate-900 shadow-xs">
+                <span className="absolute -top-1 -right-1 min-w-[15px] h-[15px] px-0.5 bg-rose-600 text-white text-[9px] font-black rounded-full flex items-center justify-center border-2 border-white dark:border-slate-900 shadow-xs">
                   {overdueCount}
                 </span>
               )}
             </div>
-            <span className={`text-[10px] leading-none mt-1 transition-colors ${
-              currentTab === 'pipeline' || currentTab === 'kanban' || currentTab === 'table' || currentTab === 'calendar' || currentTab === 'renewals'
-                ? 'font-bold text-teal-800 dark:text-teal-400'
-                : 'font-medium text-slate-500 dark:text-slate-400'
+            <span className={`text-[11px] leading-tight mt-1 transition-colors ${
+              currentTab === 'pipeline' || currentTab === 'kanban' || currentTab === 'calendar' || currentTab === 'renewals'
+                ? 'font-black text-sky-800 dark:text-sky-400'
+                : 'font-bold text-slate-700 dark:text-slate-300'
             }`}>
               Embudo
             </span>
           </button>
 
-          {/* 3. WhatsApp Hub */}
+          {/* 4. WhatsApp Hub */}
           <button
             id="mobile-nav-whatsapp"
             onClick={() => setCurrentTab('whatsapp')}
-            className="flex flex-col items-center justify-center py-1 transition-all cursor-pointer active:scale-95"
+            className="flex flex-col items-center justify-center py-1.5 min-h-[48px] transition-all cursor-pointer active:scale-95 touch-manipulation"
             aria-label="Centro de WhatsApp y Cadencias"
           >
-            <div className={`flex items-center justify-center w-10 h-7 rounded-full transition-all duration-200 ${
+            <div className={`flex items-center justify-center w-11 h-7 rounded-full transition-all duration-200 ${
               currentTab === 'whatsapp' || currentTab === 'cadence' || currentTab === 'templates'
                 ? 'bg-purple-600 text-white shadow-xs'
-                : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
             }`}>
-              <MessageCircle className="w-4 h-4 stroke-[2.2]" />
+              <MessageCircle className="w-4.5 h-4.5 stroke-[2.2]" />
             </div>
-            <span className={`text-[10px] leading-none mt-1 transition-colors ${
+            <span className={`text-[11px] leading-tight mt-1 transition-colors ${
               currentTab === 'whatsapp' || currentTab === 'cadence' || currentTab === 'templates'
-                ? 'font-bold text-purple-800 dark:text-purple-400'
-                : 'font-medium text-slate-500 dark:text-slate-400'
+                ? 'font-black text-purple-800 dark:text-purple-400'
+                : 'font-bold text-slate-700 dark:text-slate-300'
             }`}>
               WhatsApp
             </span>
           </button>
 
-          {/* 4. Reportes & Métricas */}
+          {/* 5. Reportes & Métricas */}
           <button
             id="mobile-nav-analytics"
             onClick={() => setCurrentTab('analytics')}
-            className="flex flex-col items-center justify-center py-1 transition-all cursor-pointer active:scale-95"
+            className="flex flex-col items-center justify-center py-1.5 min-h-[48px] transition-all cursor-pointer active:scale-95 touch-manipulation"
             aria-label="Reportes y Métricas"
           >
-            <div className={`flex items-center justify-center w-10 h-7 rounded-full transition-all duration-200 ${
+            <div className={`flex items-center justify-center w-11 h-7 rounded-full transition-all duration-200 ${
               currentTab === 'analytics'
-                ? 'bg-teal-700 text-white shadow-xs'
-                : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                ? 'bg-emerald-600 text-white shadow-xs'
+                : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
             }`}>
-              <BarChart3 className="w-4 h-4 stroke-[2.2]" />
+              <BarChart3 className="w-4.5 h-4.5 stroke-[2.2]" />
             </div>
-            <span className={`text-[10px] leading-none mt-1 transition-colors ${
+            <span className={`text-[11px] leading-tight mt-1 transition-colors ${
               currentTab === 'analytics'
-                ? 'font-bold text-teal-800 dark:text-teal-400'
-                : 'font-medium text-slate-500 dark:text-slate-400'
+                ? 'font-black text-emerald-800 dark:text-emerald-400'
+                : 'font-bold text-slate-700 dark:text-slate-300'
             }`}>
               Reportes
-            </span>
-          </button>
-
-          {/* 5. Planes ($99/$150) */}
-          <button
-            id="mobile-nav-services"
-            onClick={onOpenServicesModal}
-            className="flex flex-col items-center justify-center py-1 transition-all cursor-pointer active:scale-95"
-            aria-label="Planes y Tarifas"
-          >
-            <div className="flex items-center justify-center w-10 h-7 rounded-full bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/80 shadow-2xs hover:bg-emerald-100 dark:hover:bg-emerald-900/60 transition-colors">
-              <Tag className="w-4 h-4 stroke-[2.2] text-emerald-700 dark:text-emerald-300" />
-            </div>
-            <span className="text-[10px] leading-none mt-1 font-bold text-emerald-800 dark:text-emerald-400">
-              Planes
             </span>
           </button>
         </nav>

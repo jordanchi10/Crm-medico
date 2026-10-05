@@ -26,6 +26,7 @@ import { MedicalLead, StageId } from '../types';
 import { CADENCE_STEPS, CadenceStep, getDoctorCadenceStatus, DoctorCadenceStatus } from '../utils/cadenceUtils';
 import { getSpecialtyMeta } from '../data/specialties';
 import { formatEcuadorPhoneForWhatsApp } from '../data/ecuadorData';
+import { openExternalLink } from '../utils/navigation';
 import { ThreeDCadenceIcon } from './ThreeDIcons';
 import confetti from 'canvas-confetti';
 
@@ -92,7 +93,7 @@ export const CadenceManagerView: React.FC<CadenceManagerViewProps> = ({
     const { cleanWhatsAppNumber } = formatEcuadorPhoneForWhatsApp(lead.phone);
     const targetPhone = cleanWhatsAppNumber || lead.phone.replace(/[^0-9]/g, '');
     const url = `https://wa.me/${targetPhone}?text=${encodeURIComponent(message)}`;
-    window.open(url, '_blank');
+    openExternalLink(url);
     onLogActivity(lead.id, `Secuencia ${selectedStep.title} enviada por WhatsApp.`);
     confetti({ particleCount: 40, spread: 50, origin: { y: 0.7 } });
   };
@@ -287,7 +288,7 @@ export const CadenceManagerView: React.FC<CadenceManagerViewProps> = ({
                 </h4>
               </div>
 
-              <div className={`text-[10px] mt-2 font-medium ${isSelected ? 'text-purple-300' : 'text-slate-400 dark:text-slate-500'}`}>
+              <div className={`text-xs mt-2 font-semibold ${isSelected ? 'text-purple-300' : 'text-slate-600 dark:text-slate-300'}`}>
                 {step.tagline}
               </div>
             </button>
@@ -299,10 +300,10 @@ export const CadenceManagerView: React.FC<CadenceManagerViewProps> = ({
       <div className="bg-gradient-to-r from-purple-50 via-slate-50 to-teal-50/40 dark:from-slate-900 dark:via-purple-950/30 dark:to-slate-900 rounded-2xl border border-purple-200/90 dark:border-purple-800/60 p-4 sm:p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-sm">
         <div>
           <div className="flex items-center gap-2">
-            <span className="text-[10px] font-black text-purple-800 dark:text-purple-300 uppercase tracking-wider bg-purple-100 dark:bg-purple-950 px-2 py-0.5 rounded-full">
-              Objetivo del {selectedStep.badge}
+            <span className="text-xs font-black text-purple-900 dark:text-purple-300 uppercase tracking-wider bg-purple-100 dark:bg-purple-950 px-2.5 py-0.5 rounded-full">
+              Objetivo del {stepGroups.find(g => g.step.id === selectedStepId)?.step.badge || 'Paso'}
             </span>
-            <span className="text-xs font-bold text-slate-500 dark:text-slate-400">
+            <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
               ({selectedStep.dayTarget === 1 ? 'Día 1 de contacto' : `Recomendado: Día ${selectedStep.dayTarget}`})
             </span>
           </div>
@@ -313,7 +314,7 @@ export const CadenceManagerView: React.FC<CadenceManagerViewProps> = ({
 
         {/* Quick Send to Any Doctor Picker */}
         <div className="flex items-center gap-2 w-full md:w-auto bg-white dark:bg-slate-850 p-2 rounded-xl border border-slate-200 dark:border-slate-700 shadow-2xs">
-          <span className="text-xs font-bold text-slate-600 dark:text-slate-300 shrink-0">
+          <span className="text-xs font-bold text-slate-700 dark:text-slate-200 shrink-0">
             Enviar este paso a:
           </span>
           <select
@@ -321,8 +322,8 @@ export const CadenceManagerView: React.FC<CadenceManagerViewProps> = ({
             onChange={(e) => setQuickLeadId(e.target.value)}
             className="text-xs font-bold px-2 py-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 cursor-pointer max-w-[200px] truncate"
           >
-            {leads.map(l => (
-              <option key={l.id} value={l.id}>
+            {leads.map((l, lIdx) => (
+              <option key={`${l.id || 'cad-lead'}-${lIdx}`} value={l.id}>
                 {l.doctorName} ({l.specialty})
               </option>
             ))}
@@ -343,15 +344,15 @@ export const CadenceManagerView: React.FC<CadenceManagerViewProps> = ({
       {/* Doctors in this Cadence Step */}
       <div className="space-y-4">
         {activeGroup.doctors.length === 0 ? (
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 p-12 text-center text-slate-400 dark:text-slate-500 space-y-2 shadow-xs">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 p-12 text-center text-slate-500 dark:text-slate-400 space-y-2 shadow-xs">
             <CheckCircle2 className="w-10 h-10 text-emerald-500 mx-auto stroke-1" />
-            <p className="text-xs font-bold text-slate-700 dark:text-slate-300">No hay médicos pendientes en este paso de la cadencia.</p>
-            <p className="text-[11px] text-slate-400 dark:text-slate-500 max-w-sm mx-auto">
+            <p className="text-sm font-bold text-slate-800 dark:text-slate-200">No hay médicos pendientes en este paso de la cadencia.</p>
+            <p className="text-xs text-slate-600 dark:text-slate-300 max-w-sm mx-auto font-medium">
               Puedes seleccionar otro paso en la barra superior o usar el selector "Enviar este paso a" arriba para enviar a cualquier médico.
             </p>
           </div>
         ) : (
-          activeGroup.doctors.map((item) => {
+          activeGroup.doctors.map((item, idx) => {
             const lead = item.lead;
             const message = selectedStep.generateMessage(lead);
             const specMeta = getSpecialtyMeta(lead.specialty);
@@ -359,28 +360,28 @@ export const CadenceManagerView: React.FC<CadenceManagerViewProps> = ({
 
             return (
               <div 
-                key={lead.id} 
-                className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 p-4 sm:p-5 shadow-xs hover:border-purple-300 dark:hover:border-purple-700 hover:shadow-md transition-all space-y-3.5"
+                key={`${lead.id || 'cad-doc'}-${idx}`} 
+                className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 sm:p-6 shadow-xs hover:border-purple-300 dark:hover:border-purple-700 hover:shadow-md transition-all space-y-4"
               >
                 {/* Doctor Header */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2.5 border-b border-slate-100 dark:border-slate-800">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100 dark:border-slate-800">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-teal-50 dark:bg-teal-950/70 text-teal-600 dark:text-teal-400 flex items-center justify-center font-bold border border-teal-100 dark:border-teal-900/60 shrink-0">
+                    <div className="w-11 h-11 rounded-xl bg-teal-50 dark:bg-teal-950/70 text-teal-700 dark:text-teal-400 flex items-center justify-center font-bold text-sm border border-teal-100 dark:border-teal-900/60 shrink-0">
                       {lead.doctorName.slice(0, 2).toUpperCase()}
                     </div>
                     <div>
                       <div className="flex items-center gap-2 flex-wrap">
-                        <h4 className="text-sm font-bold text-slate-900 dark:text-white">
+                        <h4 className="text-base font-bold text-slate-900 dark:text-white">
                           {lead.doctorName}
                         </h4>
-                        <span className={`text-[10px] font-bold px-2 py-0.2 rounded-md ${specMeta.bgLight} ${specMeta.color}`}>
+                        <span className={`text-xs font-bold px-2.5 py-0.5 rounded-md ${specMeta.bgLight} ${specMeta.color}`}>
                           {lead.specialty}
                         </span>
-                        <span className="text-[10px] font-bold px-2 py-0.2 rounded-md bg-purple-50 dark:bg-purple-950/70 text-purple-800 dark:text-purple-300 border border-purple-200 dark:border-purple-800">
+                        <span className="text-xs font-bold px-2.5 py-0.5 rounded-md bg-purple-50 dark:bg-purple-950/70 text-purple-900 dark:text-purple-300 border border-purple-200 dark:border-purple-800">
                           {item.statusText}
                         </span>
                       </div>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-2 flex-wrap">
+                      <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 mt-1 flex items-center gap-2.5 flex-wrap font-medium">
                         <span>🏥 {lead.clinicOrHospital}</span>
                         <span>📍 {lead.city || 'Manta'} ({lead.sector || 'Centro'})</span>
                         <span className="font-mono text-emerald-700 dark:text-emerald-400 font-bold">📱 {lead.phone} (+593)</span>
@@ -392,7 +393,7 @@ export const CadenceManagerView: React.FC<CadenceManagerViewProps> = ({
                     <button
                       type="button"
                       onClick={() => onOpenEdit(lead)}
-                      className="text-xs text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white font-semibold px-2.5 py-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+                      className="text-xs font-bold text-slate-800 dark:text-slate-200 hover:text-slate-950 dark:hover:text-white px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
                     >
                       Ver Ficha
                     </button>
@@ -400,18 +401,18 @@ export const CadenceManagerView: React.FC<CadenceManagerViewProps> = ({
                 </div>
 
                 {/* Instant WhatsApp Template Preview */}
-                <div className="bg-slate-50 dark:bg-slate-850 rounded-xl p-3.5 border border-slate-200/80 dark:border-slate-800 space-y-2">
+                <div className="bg-slate-50 dark:bg-slate-850 rounded-xl p-4 border border-slate-200/80 dark:border-slate-800 space-y-2.5">
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider flex items-center gap-1">
-                      <Sparkles className="w-3 h-3 text-purple-600 dark:text-purple-400" />
+                    <span className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
                       <span>Mensaje Personalizado Sugerido:</span>
                     </span>
-                    <span className="text-[10px] text-purple-700 dark:text-purple-300 font-bold">
+                    <span className="text-xs text-purple-800 dark:text-purple-300 font-bold">
                       Listo para enviar con 1 clic por WhatsApp (+593)
                     </span>
                   </div>
 
-                  <p className="text-xs text-slate-700 dark:text-slate-200 whitespace-pre-line font-sans leading-relaxed bg-white dark:bg-slate-900 p-3 rounded-lg border border-slate-200 dark:border-slate-800">
+                  <p className="text-xs sm:text-sm text-slate-800 dark:text-slate-100 whitespace-pre-line font-sans leading-relaxed bg-white dark:bg-slate-900 p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 font-medium">
                     {message}
                   </p>
                 </div>

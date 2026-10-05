@@ -22,6 +22,7 @@ import {
 import { MedicalLead, StageId } from '../types';
 import { STAGES } from '../data/stages';
 import { getSpecialtyMeta } from '../data/specialties';
+import { openExternalLink } from '../utils/navigation';
 import { ThreeDCalendarIcon } from './ThreeDIcons';
 
 interface CalendarViewProps {
@@ -161,7 +162,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
     const dates = `${dateVal}T${timeVal}/${dateVal}T${timeVal}`;
 
     const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&details=${details}&location=${location}&dates=${dates}`;
-    window.open(url, '_blank');
+    openExternalLink(url);
   };
 
   // Generate .ICS file download
@@ -293,15 +294,15 @@ END:VCALENDAR`;
         </div>
 
         {/* Filter Pills */}
-        <div className="flex items-center gap-1.5 flex-wrap w-full sm:w-auto">
-          <span className="text-[11px] font-bold text-slate-400 dark:text-slate-500 mr-1 hidden md:inline">Filtrar:</span>
+        <div className="flex items-center gap-2 flex-wrap w-full sm:w-auto">
+          <span className="text-xs font-bold text-slate-700 dark:text-slate-300 mr-1 hidden md:inline">Filtrar:</span>
           <button
             type="button"
             onClick={() => setFilterType('all')}
-            className={`text-xs px-3 py-1.5 rounded-xl border font-bold transition-all cursor-pointer ${
+            className={`text-xs px-3.5 py-1.5 rounded-xl border font-bold transition-all cursor-pointer ${
               filterType === 'all'
                 ? 'bg-slate-900 dark:bg-sky-600 text-white border-slate-900 dark:border-sky-500 shadow-2xs'
-                : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700'
+                : 'bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700'
             }`}
           >
             Todas ({filteredLeads.length})
@@ -310,10 +311,10 @@ END:VCALENDAR`;
           <button
             type="button"
             onClick={() => setFilterType('demos')}
-            className={`text-xs px-3 py-1.5 rounded-xl border font-bold transition-all cursor-pointer ${
+            className={`text-xs px-3.5 py-1.5 rounded-xl border font-bold transition-all cursor-pointer ${
               filterType === 'demos'
                 ? 'bg-amber-500 dark:bg-amber-600 text-white border-amber-600 dark:border-amber-500 shadow-2xs'
-                : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700'
+                : 'bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700'
             }`}
           >
             Solo Demos ({leads.filter(l => l.stage === 'demo_agendada').length})
@@ -322,10 +323,10 @@ END:VCALENDAR`;
           <button
             type="button"
             onClick={() => setFilterType('high_priority')}
-            className={`text-xs px-3 py-1.5 rounded-xl border font-bold transition-all cursor-pointer ${
+            className={`text-xs px-3.5 py-1.5 rounded-xl border font-bold transition-all cursor-pointer ${
               filterType === 'high_priority'
                 ? 'bg-rose-600 dark:bg-rose-600 text-white border-rose-700 dark:border-rose-500 shadow-2xs'
-                : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700'
+                : 'bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700'
             }`}
           >
             Prioridad Alta ({leads.filter(l => l.priority === 'alta' && l.nextFollowUpDate).length})
@@ -341,7 +342,7 @@ END:VCALENDAR`;
           <div className="lg:col-span-2 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-sm p-4 sm:p-5 flex flex-col">
             
             {/* Weekday headers */}
-            <div className="grid grid-cols-7 gap-1 text-center font-bold text-xs text-slate-400 dark:text-slate-500 pb-2 border-b border-slate-100 dark:border-slate-800">
+            <div className="grid grid-cols-7 gap-1 text-center font-bold text-xs text-slate-700 dark:text-slate-300 pb-2 border-b border-slate-200 dark:border-slate-800">
               {weekDayNames.map((wd) => (
                 <div key={wd} className="py-1">
                   {wd}
@@ -391,9 +392,9 @@ END:VCALENDAR`;
 
                     {/* Event dots / preview */}
                     <div className="space-y-1 mt-1">
-                      {dayLeads.slice(0, 2).map((l) => (
+                      {dayLeads.slice(0, 2).map((l, lIdx) => (
                         <div
-                          key={l.id}
+                          key={`${l.id || 'day-lead'}-${lIdx}`}
                           className={`text-[9px] sm:text-[10px] px-1.5 py-0.5 rounded font-semibold truncate flex items-center gap-1 ${
                             l.stage === 'demo_agendada'
                               ? 'bg-amber-100 dark:bg-amber-950/60 text-amber-900 dark:text-amber-300 border border-amber-200 dark:border-amber-800'
@@ -425,7 +426,7 @@ END:VCALENDAR`;
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-sm p-4 sm:p-5 flex flex-col">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
               <div>
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                <span className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
                   Detalle del Día
                 </span>
                 <h4 className="text-base font-black text-slate-900 dark:text-white capitalize">
@@ -440,7 +441,7 @@ END:VCALENDAR`;
               <span className={`text-xs px-2.5 py-1 rounded-full font-bold ${
                 selectedDayLeads.length > 0 
                   ? 'bg-sky-100 dark:bg-sky-950/80 text-sky-800 dark:text-sky-300 border border-sky-200 dark:border-sky-800' 
-                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
+                  : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
               }`}>
                 {selectedDayLeads.length} {selectedDayLeads.length === 1 ? 'cita' : 'citas'}
               </span>
@@ -449,21 +450,21 @@ END:VCALENDAR`;
             {/* List of events for selected day */}
             <div className="flex-1 overflow-y-auto space-y-3 py-3 max-h-[460px]">
               {selectedDayLeads.length === 0 ? (
-                <div className="h-48 flex flex-col items-center justify-center text-center p-4 text-slate-400 dark:text-slate-500">
-                  <CalendarCheck className="w-10 h-10 text-slate-300 dark:text-slate-700 mb-2 stroke-1" />
-                  <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">No hay citas programadas para este día.</p>
-                  <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1">
+                <div className="h-48 flex flex-col items-center justify-center text-center p-4 text-slate-500 dark:text-slate-400">
+                  <CalendarCheck className="w-10 h-10 text-slate-400 dark:text-slate-600 mb-2 stroke-1" />
+                  <p className="text-xs font-bold text-slate-700 dark:text-slate-300">No hay citas programadas para este día.</p>
+                  <p className="text-xs text-slate-600 dark:text-slate-300 mt-1 font-medium">
                     Puedes agendar una demostración médica con el botón superior.
                   </p>
                 </div>
               ) : (
-                selectedDayLeads.map((lead) => {
+                selectedDayLeads.map((lead, idx) => {
                   const specMeta = getSpecialtyMeta(lead.specialty);
                   const stageMeta = STAGES.find(s => s.id === lead.stage);
 
                   return (
                     <div
-                      key={lead.id}
+                      key={`${lead.id || 'sel-lead'}-${idx}`}
                       className="p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-850 hover:bg-white dark:hover:bg-slate-800 hover:shadow-xs transition-all space-y-2.5"
                     >
                       <div className="flex items-start justify-between gap-2">
@@ -566,14 +567,14 @@ END:VCALENDAR`;
           <div className="divide-y divide-slate-100 dark:divide-slate-800">
             {filteredLeads
               .sort((a, b) => a.nextFollowUpDate.localeCompare(b.nextFollowUpDate))
-              .map((lead) => {
+              .map((lead, idx) => {
                 const specMeta = getSpecialtyMeta(lead.specialty);
                 const stageMeta = STAGES.find(s => s.id === lead.stage);
                 const isPast = lead.nextFollowUpDate < todayStr;
                 const isToday = lead.nextFollowUpDate === todayStr;
 
                 return (
-                  <div key={lead.id} className="py-3 sm:py-4 flex flex-col md:flex-row md:items-center justify-between gap-3 hover:bg-slate-50/60 dark:hover:bg-slate-850 p-2 rounded-xl transition-colors">
+                  <div key={`${lead.id || 'cal-lead'}-${idx}`} className="py-3 sm:py-4 flex flex-col md:flex-row md:items-center justify-between gap-3 hover:bg-slate-50/60 dark:hover:bg-slate-850 p-2 rounded-xl transition-colors">
                     <div className="flex items-start gap-3">
                       <div className={`w-14 text-center shrink-0 p-2 rounded-xl border font-bold ${
                         isToday

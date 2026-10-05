@@ -11,7 +11,8 @@ import {
   Pause,
   HelpCircle,
   Eye,
-  FileCheck
+  FileCheck,
+  AlertCircle
 } from 'lucide-react';
 import { MediaAttachmentType, TemplateMediaAttachment } from '../types';
 import { 
@@ -44,6 +45,7 @@ export const AttachmentEditorModal: React.FC<AttachmentEditorModalProps> = ({
   const [caption, setCaption] = useState(initialAttachment?.caption || '');
   const [duration, setDuration] = useState(initialAttachment?.duration || '0:30');
   const [description, setDescription] = useState(initialAttachment?.description || '');
+  const [formError, setFormError] = useState<string | null>(null);
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -115,9 +117,10 @@ export const AttachmentEditorModal: React.FC<AttachmentEditorModalProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) {
-      alert('Por favor indica un título para el archivo');
+      setFormError('Por favor indica un título para el archivo');
       return;
     }
+    setFormError(null);
 
     let finalUrl = url;
     let finalFileName = fileName;
@@ -354,6 +357,14 @@ export const AttachmentEditorModal: React.FC<AttachmentEditorModalProps> = ({
                   <span>{isPlayingAudio ? 'Pausar' : 'Probar'}</span>
                 </button>
               )}
+            </div>
+          )}
+
+          {/* Error Banner */}
+          {formError && (
+            <div className="p-3 bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-200 text-xs rounded-xl flex items-center gap-2 animate-in fade-in">
+              <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+              <span>{formError}</span>
             </div>
           )}
 
